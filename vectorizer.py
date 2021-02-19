@@ -12,12 +12,14 @@ class Vectorizer:
     model: AutoModel
     tokenizer: AutoTokenizer
     cuda: bool
+    cuda_core: str
 
-    def __init__(self, model_path: str, cuda_support: bool):
+    def __init__(self, model_path: str, cuda_support: bool, cuda_core: str):
         self.cuda = cuda_support
+        self.cuda_core = cuda_core
         self.model = AutoModel.from_pretrained(model_path)
         if self.cuda:
-            self.model.to('cuda')
+            self.model.to(self.cuda_core)
         self.model.eval() # make sure we're in inference mode, not training
 
         self.tokenizer = AutoTokenizer.from_pretrained("./models/test")
@@ -27,7 +29,7 @@ class Vectorizer:
                 add_special_tokens = True, return_tensors="pt")
 
 
-    def vectorize(self, text: str):
+    async def vectorize(self, text: str):
         with torch.no_grad():
             print("starting sentence tokenization")
             before = time.time()
@@ -53,7 +55,7 @@ class Vectorizer:
                 print("tokenizing took {}".format(elapsed))
                 print(" --number of tokens: {}".format(tokens['input_ids'].size()))
                 if self.cuda:
-                    tokens.to('cuda')
+                    tokens.to(self.cuda_core)
                 batch_results = self.model(**tokens)
                 batch_vectors[i] = batch_results[0].mean(0).mean(0).detach()
 

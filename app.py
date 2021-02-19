@@ -6,9 +6,16 @@ import os
 app = FastAPI()
 
 cuda_env = os.getenv("ENABLE_CUDA")
-cuda_support = cuda_env is not None and cuda_env == "true" or cuda_env == "1"
+cuda_support=False
+cuda_core=""
+if cuda_env is not None and cuda_env == "true" or cuda_env == "1":
+    cuda_support=True
+    cuda_core = os.getenv("CUDA_CORE")
+    if cuda_core is None or cuda_core == "":
+        cuda_core = "cuda:0"
 
-vec = Vectorizer('./models/test', cuda_support)
+print("cuda core set to {}".format(cuda_core))
+vec = Vectorizer('./models/test', cuda_support, cuda_core)
 
 
 @app.get("/.well-known/live", response_class=Response)
@@ -20,9 +27,9 @@ class VectorInput(BaseModel):
     text: str
 
 @app.post("/vectors/")
-def read_item(item: VectorInput, response: Response):
+async def read_item(item: VectorInput, response: Response):
     try:
-        vector = vec.vectorize(item.text)
+        vector = await vec.vectorize(item.text)
         return {"text": item.text, "vector": vector.tolist(), "dim": len(vector)}
     except Exception as e:
         response.status_code = status.HTTP_500_INTERNAL_SERVER_ERROR
