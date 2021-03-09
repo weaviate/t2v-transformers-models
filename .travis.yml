@@ -1,0 +1,12 @@
+language: python3
+
+env:
+  global:
+    - LOCAL_REPO: transformers-inference
+    - REMOTE_REPO: semitechnologies/transformers-inference
+  jobs:
+    - MODEL_NAME=bert-base-uncased
+    - MODEL_NAME=distilbert-base-uncased
+
+script: cicd/build.sh
+
