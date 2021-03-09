@@ -60,15 +60,15 @@ function push_tag() {
   if [ ! -z "$GIT_TAG" ]; then
     tag="$remote_repo:$model_name-$GIT_TAG"
     echo "Tag & Push $tag"
-    docker tag "$LOCAL_TAG" "$tag" && docker push "$tag"
+    docker tag "$local_repo" "$tag" && docker push "$tag"
 
     tag="$remote_repo:$model_name-latest"
     echo "Tag & Push $tag"
-    docker tag "$LOCAL_TAG" "$tag" && docker push "$tag"
+    docker tag "$local_repo" "$tag" && docker push "$tag"
 
     tag="$remote_repo:$model_name"
     echo "Tag & Push $tag"
-    docker tag "$LOCAL_TAG" "$tag" && docker push "$tag"
+    docker tag "$local_repo" "$tag" && docker push "$tag"
   fi
 }
 
