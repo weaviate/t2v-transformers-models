@@ -2,19 +2,22 @@ language: python3
 
 env:
   global:
-    - LOCAL_REPO: transformers-inference
-    - REMOTE_REPO: semitechnologies/transformers-inference
+  - LOCAL_REPO: transformers-inference
+  - REMOTE_REPO: semitechnologies/transformers-inference
+  - secure: QLL5aAA41AjtgVeHPmgmtpp/nOup0R5FT/wIJwPEAjIWl2MuOCnqaHq5pE+XM80tkbAHhVz48IyLH6P5FkcYQO0dmRHO9M6n3jawrrsTvbQ1dIMqEarl69mO7+xQZJS/ggN6E8Q0Q5Y0Q8f/btC6osHr01OOyqd+Tb3Bcihv/zFmPydULSAu2pL4n89PkY52PjHgxkrsBBxiN3O95q/FwGCVWq+kH1bSkEAAl/miXA0wCss4I108cUmoY4RS1CYKAGzRk0fK6d+r+sIw08pX3Gvr/2KFQhCK0mJAPKnBZ/VBDFW1ilZ1LZseciYSX/RtHYvWgTb1xemAR3ewmXmJYP9mqvaBArleZARg4cWsz7Qz9Mj9oiC4EGgCxHrzXBV2d+SwIh1JFs3k87P+DUyDTmoR6rTTMMQ4lLPnPSRj0lQtvCAl861ojivkQG4jOKKYyJiKKDmTqGsJ6Ys53MNkzsHCUEZCZxJlSMqOLZGxr+U/A7F8LCUt/h2rgyL9QT1kCz2tNYyE3BMktAyKeLD4np7cHxkLUbPv59HkEffCfP/79B+1s2Gb3Bok9F/u1oiIXJ3pO3gaFXfN4/RxG7lROpNMhRin4yo7YU/kBNu432b4ufcJ1LPmqWAH+FN/0OidZPxitrHWPPklHga718/yhl+mkObWm9uJmt0zmK+ZzIM=
+  - secure: Kk1k4is7vziUkv6ZJqbIuY6zQCesWYILmI4x9MHQcwSzmrKas5fSvSFobQZHKp9IdpUQ6awR18+yJHmqU+I25LqCm3AjvSz2OmS3d/Fq/Q3U5C7mRrSprQT/zjCiTwjjrc7xO9RaaLKX92dHZkHvmYk2jf/1F3gMZGw1RpdTfj+pUbgIvw/AL8CaIPkNKZpR0tjpm3fOIO4MCgu0JpzscnCF00ANKc/Gy2jtmts8ee1lmnLRBeci1cRwbJOqzHh8AhJG3rrVCu9ISiqd62vOXlM+z7W2KUdTtVo5bNBa5iBuBa+kwd/uH95p9NVdMuISaO+cj5fT9sFMLPpLcAjnLjChGMBUIeT5pSedWwziYj48TZqIEgmza4iBwVyXIBx6Jblml+j8EobnDtQCtHbHU98FgBO5AdaNbt4laHlOQCSs2Kt2AFT6UAS8NqT842gHoG9jr6ovYpwb27TjE8ILCnCRnhy9e3VW0VCRHCrgotwCAV/gM4S0kVaO5IAa8vxDp0w+4ewdh60aysg4p6us21Iim746WNi4xXPzkeJ/ce/X1abDy2yMc6XP3el4OGIYe701/wDblcmjybNqq+RjphtwmNJUnk+BdykW+006+xkzAo58IcFZMqkeDFd/FOa5OEM6w1HA1rXM5IYGWwrQudx7lyFOzPAxPt938Gk33UE=
   jobs:
-    - MODEL_NAME=bert-base-uncased
-    - MODEL_NAME=distilbert-base-uncased
+  - MODEL_NAME=bert-base-uncased
+  - MODEL_NAME=distilbert-base-uncased
 
-script: 
-  - cicd/build.sh || travis_terminate 1
-  - cicd/test.sh || travis_terminate 1
-  - |-
-    # Push docker image
-    GIT_BRANCH=$TRAVIS_BRANCH \
-    GIT_TAG=$TRAVIS_TAG \
-    GIT_PULL_REQUEST=$TRAVIS_PULL_REQUEST \
-    cicd/docker_push.sh || travis_terminate 1
+script:
+- cicd/build.sh || travis_terminate 1
 
+- cicd/test.sh || travis_terminate 1
+
+- |-
+  # Push docker image
+  GIT_BRANCH=$TRAVIS_BRANCH \
+  GIT_TAG=$TRAVIS_TAG \
+  GIT_PULL_REQUEST=$TRAVIS_PULL_REQUEST \
+  cicd/docker_push.sh || travis_terminate 1
