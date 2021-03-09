@@ -11,5 +11,10 @@ env:
 script: 
   - cicd/build.sh || travis_terminate 1
   - cicd/test.sh || travis_terminate 1
-  # - cicd/docker_push.sh || travis_terminate 1
+  - |-
+    # Push docker image
+    GIT_BRANCH=$TRAVIS_BRANCH \
+    GIT_TAG=$TRAVIS_TAG \
+    GIT_PULL_REQUEST=$TRAVIS_PULL_REQUEST \
+    cicd/docker_push.sh || travis_terminate 1
 
