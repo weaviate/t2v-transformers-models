@@ -15,7 +15,7 @@ script:
 
 - |-
   # Login early, so that all pull commands run with authentication (faster)
-  echo $DOCKER_PASSWORD | docker login -u DOCKER_USERNAME --password-stdin
+  echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin
 
 - cicd/build.sh || travis_terminate 1
 
