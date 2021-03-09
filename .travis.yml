@@ -8,5 +8,8 @@ env:
     - MODEL_NAME=bert-base-uncased
     - MODEL_NAME=distilbert-base-uncased
 
-script: cicd/build.sh
+script: 
+  - cicd/build.sh || travis_terminate 1
+  - cicd/test.sh || travis_terminate 1
+  # - cicd/docker_push.sh || travis_terminate 1
 
