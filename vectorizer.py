@@ -7,6 +7,7 @@ import time
 # limit transformer batch size to limit parellel inference, otherwise we run
 # into memory problems
 MAX_BATCH_SIZE = 25  # TODO: take from config
+POOL_METHOD="masked_mean"
 
 class Vectorizer:
     model: AutoModel
@@ -22,12 +23,18 @@ class Vectorizer:
             self.model.to(self.cuda_core)
         self.model.eval() # make sure we're in inference mode, not training
 
-        self.tokenizer = AutoTokenizer.from_pretrained("./models/test")
+        self.tokenizer = AutoTokenizer.from_pretrained(model_path)
 
     def tokenize(self, text:str):
         return self.tokenizer(text, padding=True, truncation=True, max_length=500, 
                 add_special_tokens = True, return_tensors="pt")
 
+    def pool_mean(self, embeddings, attention_mask):
+        input_mask_expanded = attention_mask.unsqueeze(-1).expand(embeddings.size()).float()
+        sum_embeddings = torch.sum(embeddings * input_mask_expanded, 1)
+        sum_mask = torch.clamp(input_mask_expanded.sum(1), min=1e-9)
+        sentences = sum_embeddings / sum_mask
+        return sentences.mean(0)
 
     async def vectorize(self, text: str):
         with torch.no_grad():
@@ -57,6 +64,13 @@ class Vectorizer:
                 if self.cuda:
                     tokens.to(self.cuda_core)
                 batch_results = self.model(**tokens)
-                batch_vectors[i] = batch_results[0].mean(0).mean(0).detach()
+                if POOL_METHOD == "cls":
+                    batch_vectors[i] = batch_results[0][:, 0, :].mean(0).detach()
+                    continue
+                if POOL_METHOD == "masked_mean":
+                    batch_vectors[i] = self.pool_mean(batch_results[0], tokens['attention_mask'])
+                    continue
+                raise Exception("invalid pooling method {}".format(POOL_METHOD))
+
 
             return batch_vectors.mean(0)
