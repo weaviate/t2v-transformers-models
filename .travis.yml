@@ -9,7 +9,15 @@ env:
   jobs:
   - MODEL_NAME=bert-base-uncased
   - MODEL_NAME=distilbert-base-uncased
+  - MODEL_NAME=distilroberta-base
+  - MODEL_NAME=sentence-transformers/stsb-distilbert-base MODEL_TAG=sentence-transformers-stsb-distilbert-base
+  - MODEL_NAME=sentence-transformers/quora-distilbert-base MODEL_TAG=sentence-transformers-quora-distilbert-base
+  - MODEL_NAME=sentence-transformers/paraphrase-distilroberta-base-v1 MODEL_TAG=sentence-transformers-paraphrase-distilroberta-base-v1
+  - MODEL_NAME=kiri-ai/distiluse-base-multilingual-cased-et MODEL_TAG=kiri-ai-distiluse-base-multilingual-cased-et
+  - MODEL_NAME=sentence-transformers/msmarco-distilroberta-base-v2 MODEL_TAG=sentence-transformers-msmarco-distilroberta-base-v2
   - MODEL_NAME=sentence-transformers/msmarco-distilbert-base-v2 MODEL_TAG_NAME=sentence-transformers-msmarco-distilbert-base-v2
+  - MODEL_NAME=sentence-transformers/stsb-xlm-r-multilingual MODEL_TAG=sentence-transformers-stsb-xlm-r-multilingual
+  - MODEL_NAME=sentence-transformers/paraphrase-xlm-r-multilingual-v1 MODEL_TAG=sentence-transformers-paraphrase-xlm-r-multilingual-v1
 
 script:
 
