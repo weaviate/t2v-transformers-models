@@ -3,9 +3,9 @@
 set -e pipefail
 
 # Docker push rules
-# If not on master
+# If not on main
 # - nothing is pushed
-# If on master and not PR
+# If on main and not PR
 # - any commit is pushed as :<model>-<7-digit-hash> 
 # If on tag (e.g. 1.0.0)
 # - any commit is pushed as :<model>-<semver>
@@ -21,11 +21,21 @@ docker_password=${DOCKER_PASSWORD?Variable DOCKER_PASSWORD is required}
 
 function main() {
   init
-  push_master
+  echo "git branch is $GIT_BRANCH"
+  echo "git tag is $GIT_TAG"
+  echo "pr is $pr"
+  push_main
   push_tag
 }
 
 function init() {
+  if [ ! -z "$MODEL_TAG_NAME" ]; then
+    # a model tag name was specified to overwrite the model name. This is the
+    # case, for example, when the original model name contains characters we
+    # can't use in the docker tag
+    model_name="$MODEL_TAG_NAME"
+  fi
+
   git_hash="$(git rev-parse HEAD | head -c 7)"
   pr=false
   if [ ! -z "$GIT_PULL_REQUEST" ]; then
@@ -37,8 +47,8 @@ function init() {
 
 # Note that some CI systems, such as travis, will not provide the branch, but
 # the tag on a tag-push. So this method will not be called on a tag-run.
-function push_master() {
-  if [ "$GIT_BRANCH" == "master" ] && [ "$pr" == "false" ]; then
+function push_main() {
+  if [ "$GIT_BRANCH" == "main" ] && [ "$pr" == "false" ]; then
     # The ones that are always pushed
 
     tag="$remote_repo:$model_name-$git_hash"
