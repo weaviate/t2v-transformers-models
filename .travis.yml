@@ -56,6 +56,9 @@ jobs:
         MODEL_TAG_NAME: sentence-transformers-paraphrase-xlm-r-multilingual-v1
       if: tag IS present
 
+    - name: Build the base for custom images
+      script: cicd/build_custom_base.sh
+
 script:
 
 - |-
