@@ -1,6 +1,5 @@
 from fastapi import FastAPI, Response, status
-from pydantic import BaseModel
-from vectorizer import Vectorizer
+from vectorizer import Vectorizer, VectorInput
 import os
 
 app = FastAPI()
@@ -25,13 +24,12 @@ vec = Vectorizer('./models/model', cuda_support, cuda_core)
 def live_and_ready(response: Response):
     response.status_code = status.HTTP_204_NO_CONTENT
 
-class VectorInput(BaseModel):
-    text: str
+
 
 @app.post("/vectors/")
 async def read_item(item: VectorInput, response: Response):
     try:
-        vector = await vec.vectorize(item.text)
+        vector = await vec.vectorize(item.text, item.config)
         return {"text": item.text, "vector": vector.tolist(), "dim": len(vector)}
     except Exception as e:
         response.status_code = status.HTTP_500_INTERNAL_SERVER_ERROR

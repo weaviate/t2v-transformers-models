@@ -1,5 +1,7 @@
 from transformers import AutoModel, AutoTokenizer
 from nltk.tokenize import sent_tokenize
+from pydantic import BaseModel
+from typing import Optional
 import math
 import torch
 import time
@@ -7,7 +9,15 @@ import time
 # limit transformer batch size to limit parellel inference, otherwise we run
 # into memory problems
 MAX_BATCH_SIZE = 25  # TODO: take from config
-POOL_METHOD="masked_mean"
+DEFAULT_POOL_METHOD="masked_mean"
+
+class VectorInputConfig(BaseModel):
+    pooling_strategy: str
+
+
+class VectorInput(BaseModel):
+    text: str
+    config: Optional[VectorInputConfig] = None
 
 class Vectorizer:
     model: AutoModel
@@ -36,7 +46,7 @@ class Vectorizer:
         sentences = sum_embeddings / sum_mask
         return sentences.mean(0)
 
-    async def vectorize(self, text: str):
+    async def vectorize(self, text: str, config: VectorInputConfig):
         with torch.no_grad():
             print("starting sentence tokenization")
             before = time.time()
@@ -64,13 +74,25 @@ class Vectorizer:
                 if self.cuda:
                     tokens.to(self.cuda_core)
                 batch_results = self.model(**tokens)
-                if POOL_METHOD == "cls":
+                pool_method = self.pool_method_from_config(config)
+                if pool_method == "cls":
                     batch_vectors[i] = batch_results[0][:, 0, :].mean(0).detach()
                     continue
-                if POOL_METHOD == "masked_mean":
+                if pool_method == "masked_mean":
                     batch_vectors[i] = self.pool_mean(batch_results[0], tokens['attention_mask'])
                     continue
-                raise Exception("invalid pooling method {}".format(POOL_METHOD))
+                raise Exception("invalid pooling method '{}'".format(pool_method))
 
 
             return batch_vectors.mean(0)
+
+    def pool_method_from_config(self, config: VectorInputConfig):
+        if config is None:
+            return DEFAULT_POOL_METHOD
+
+        if config.pooling_strategy is None or config.pooling_strategy == "":
+            return DEFAULT_POOL_METHOD
+
+        return config.pooling_strategy
+
+
