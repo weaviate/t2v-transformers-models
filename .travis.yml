@@ -68,7 +68,7 @@ jobs:
       stage: buildanddeploy
 
     - name: Build the base for custom images
-      script: cicd/build_custom_base.sh
+      script: GIT_BRANCH=$TRAVIS_BRANCH GIT_TAG=$TRAVIS_TAG GIT_PULL_REQUEST=$TRAVIS_PULL_REQUEST cicd/build_custom_base.sh
       stage: postbuild
 
 script:
