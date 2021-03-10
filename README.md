@@ -20,7 +20,26 @@ semantic search.
 
 The pre-built models include:
 
-**TODO: insert**
+|Model Name|Image Name|
+|---|---|
+|`distilbert-base-uncased` ([Info](https://huggingface.co/distilbert-base-uncased))|`semitechnologies/transformers-inference:distilbert-base-uncased`|
+|`bert-base-uncased` ([Info](https://huggingface.co/bert-base-uncased))|`semitechnologies/transformers-inference:bert-base-uncased`|
+|`distilroberta-base` ([Info](https://huggingface.co/distilroberta-base))|`semitechnologies/transformers-inference:distilroberta-base`|
+|`sentence-transformers/stsb-distilbert-base` ([Info](https://huggingface.co/sentence-transformers/stsb-distilbert-base))|`semitechnologies/transformers-inference:sentence-transformers-stsb-distilbert-base`|
+|`sentence-transformers/quora-distilbert-base` ([Info](https://huggingface.co/sentence-transformers/quora-distilbert-base))|`semitechnologies/transformers-inference:sentence-transformers-quora-distilbert-base`|
+|`sentence-transformers/paraphrase-distilroberta-base-v1` ([Info](https://huggingface.co/sentence-transformers/paraphrase-distilroberta-base-v1))|`semitechnologies/transformers-inference:sentence-transformers-paraphrase-distilroberta-base-v1`|
+|`kiri-ai/distiluse-base-multilingual-cased-et` ([Info](https://huggingface.co/kiri-ai/distiluse-base-multilingual-cased-et))|`semitechnologies/transformers-inference:kiri-ai-distiluse-base-multilingual-cased-et`|
+|`sentence-transformers/msmarco-distilroberta-base-v2` ([Info](https://huggingface.co/sentence-transformers/msmarco-distilroberta-base-v2))|`semitechnologies/transformers-inference:sentence-transformers-msmarco-distilroberta-base-v2`|
+|`sentence-transformers/msmarco-distilbert-base-v2` ([Info](https://huggingface.co/sentence-transformers/msmarco-distilbert-base-v2))|`semitechnologies/transformers-inference:sentence-transformers-msmarco-distilbert-base-v2`|
+|`sentence-transformers/stsb-xlm-r-multilingual` ([Info](https://huggingface.co/sentence-transformers/stsb-xlm-r-multilingual))|`semitechnologies/transformers-inference:sentence-transformers-stsb-xlm-r-multilingual`|
+|`sentence-transformers/paraphrase-xlm-r-multilingual-v1` ([Info](https://huggingface.co/sentence-transformers/paraphrase-xlm-r-multilingual-v1))|`semitechnologies/transformers-inference:sentence-transformers-paraphrase-xlm-r-multilingual-v1`|
+
+The above image names always point to the latest version of the inference
+container including the model. You can also make that explicit by appending
+`-latest` to the image name. Additionally, you can pin the version to one of
+the existing git tags of this repository. E.g. to pin `distilbert-base-uncased`
+to version `1.0.0`, you can use
+`semitechnologies/transformers-inference:distilbert-base-uncased-1.0.0`.
 
 Your favorite model is not included? Open a pull-request to include it or build
 a custom image as outlined below.
