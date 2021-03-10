@@ -15,49 +15,61 @@ jobs:
     # always run test, etc. for this model
     - env: 
         MODEL_NAME: distilbert-base-uncased
+      stage: buildanddeploy
 
     # to prevent spamming the pipeline, only include most models if there is a tag
     - env: 
         MODEL_NAME: bert-base-uncased
       if: tag IS present
+      stage: buildanddeploy
     - env: 
         MODEL_NAME: distilroberta-base
       if: tag IS present
+      stage: buildanddeploy
     - env: 
         MODEL_NAME: sentence-transformers/stsb-distilbert-base 
         MODEL_TAG_NAME: sentence-transformers-stsb-distilbert-base
       if: tag IS present
+      stage: buildanddeploy
     - env: 
         MODEL_NAME: sentence-transformers/quora-distilbert-base 
         MODEL_TAG_NAME: sentence-transformers-quora-distilbert-base
       if: tag IS present
+      stage: buildanddeploy
     - env: 
         MODEL_NAME: sentence-transformers/paraphrase-distilroberta-base-v1 
         MODEL_TAG_NAME: sentence-transformers-paraphrase-distilroberta-base-v1
       if: tag IS present
+      stage: buildanddeploy
     - env: 
         MODEL_NAME: kiri-ai/distiluse-base-multilingual-cased-et 
         MODEL_TAG_NAME: kiri-ai-distiluse-base-multilingual-cased-et
       if: tag IS present
+      stage: buildanddeploy
     - env: 
         MODEL_NAME: sentence-transformers/msmarco-distilroberta-base-v2 
         MODEL_TAG_NAME: sentence-transformers-msmarco-distilroberta-base-v2
       if: tag IS present
+      stage: buildanddeploy
     - env: 
         MODEL_NAME: sentence-transformers/msmarco-distilbert-base-v2 
         MODEL_TAG_NAME: sentence-transformers-msmarco-distilbert-base-v2
       if: tag IS present
+      stage: buildanddeploy
     - env: 
         MODEL_NAME: sentence-transformers/stsb-xlm-r-multilingual 
         MODEL_TAG_NAME: sentence-transformers-stsb-xlm-r-multilingual
       if: tag IS present
+      stage: buildanddeploy
     - env: 
         MODEL_NAME: sentence-transformers/paraphrase-xlm-r-multilingual-v1 
         MODEL_TAG_NAME: sentence-transformers-paraphrase-xlm-r-multilingual-v1
       if: tag IS present
+      stage: buildanddeploy
 
     - name: Build the base for custom images
       script: cicd/build_custom_base.sh
+      stage: postbuild
 
 script:
 
