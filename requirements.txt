@@ -3,4 +3,5 @@ fastapi==0.63.0
 uvicorn==0.13.3
 nltk==3.5
 torch==1.7.1
-
+sentencepiece==0.1.95
+protobuf==3.14.0
