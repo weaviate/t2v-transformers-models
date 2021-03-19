@@ -5,7 +5,8 @@ WORKDIR /app
 COPY requirements.txt .
 RUN pip3 install -r requirements.txt
 
-COPY download.py .
+COPY custom_prerequisites.py .
+RUN ./custom_prerequisites.py
 
 COPY . .
 
