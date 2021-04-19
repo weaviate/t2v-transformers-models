@@ -1,5 +1,6 @@
 from fastapi import FastAPI, Response, status
 from vectorizer import Vectorizer, VectorInput
+from meta import Meta
 import os
 
 app = FastAPI()
@@ -17,6 +18,7 @@ else:
     print("[INFO] running on CPU")
 
 vec = Vectorizer('./models/model', cuda_support, cuda_core)
+meta_config = Meta('./models/model')
 
 
 @app.get("/.well-known/live", response_class=Response)
@@ -24,6 +26,10 @@ vec = Vectorizer('./models/model', cuda_support, cuda_core)
 def live_and_ready(response: Response):
     response.status_code = status.HTTP_204_NO_CONTENT
 
+
+@app.get("/meta")
+def meta():
+    return meta_config.get()
 
 
 @app.post("/vectors/")
