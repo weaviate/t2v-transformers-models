@@ -28,6 +28,9 @@ function init() {
     pr="$GIT_PULL_REQUEST"
   fi
 
+  docker run --rm --privileged multiarch/qemu-user-static --reset -p yes
+  docker buildx create --use
+
   echo "$docker_password" | docker login -u "$docker_username" --password-stdin
 }
 
