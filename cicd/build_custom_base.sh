@@ -17,7 +17,6 @@ function main() {
   echo "git branch is $GIT_BRANCH"
   echo "git tag is $GIT_TAG"
   echo "pr is $pr"
-  build
   push_main
   push_tag
 }
@@ -39,23 +38,28 @@ function push_main() {
     # The ones that are always pushed
 
     tag="$remote_repo:custom-$git_hash"
-    docker tag "custom-base" "$tag" && docker push "$tag"
+    docker buildx build -f custom.Dockerfile \
+      --tag "$tag" \
+      --push \
+      .
   fi
 }
 
 function push_tag() {
   if [ ! -z "$GIT_TAG" ]; then
-    tag="$remote_repo:custom-$GIT_TAG"
-    echo "Tag & Push $tag"
-    docker tag "custom-base" "$tag" && docker push "$tag"
-
-    tag="$remote_repo:custom-latest"
-    echo "Tag & Push $tag"
-    docker tag "custom-base" "$tag" && docker push "$tag"
-
+    tag_git="$remote_repo:custom-$GIT_TAG"
+    tag_latest="$remote_repo:custom-latest"
     tag="$remote_repo:custom"
-    echo "Tag & Push $tag"
+
+    echo "Tag & Push $tag, $tag_latest, $tag_git"
     docker tag "custom-base" "$tag" && docker push "$tag"
+
+    docker buildx build -f custom.Dockerfile \
+      --tag "$tag" \
+      --tag "$tag_latest" \
+      --tag "$tag_git" \
+      --push \
+      .
   fi
 }
 

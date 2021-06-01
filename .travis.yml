@@ -19,14 +19,6 @@ jobs:
 
     # to prevent spamming the pipeline, only include most models if there is a tag
     - env: 
-        MODEL_NAME: bert-base-uncased
-      if: tag IS present
-      stage: buildanddeploy
-    - env: 
-        MODEL_NAME: distilroberta-base
-      if: tag IS present
-      stage: buildanddeploy
-    - env: 
         MODEL_NAME: sentence-transformers/stsb-distilbert-base 
         MODEL_TAG_NAME: sentence-transformers-stsb-distilbert-base
       if: tag IS present
@@ -72,18 +64,31 @@ jobs:
       stage: postbuild
 
 script:
-
-- |-
-  # Login early, so that all pull commands run with authentication (faster)
-  echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin
-
 - cicd/build.sh || travis_terminate 1
-
 - cicd/test.sh || travis_terminate 1
-
 - |-
   # Push docker image
   GIT_BRANCH=$TRAVIS_BRANCH \
   GIT_TAG=$TRAVIS_TAG \
   GIT_PULL_REQUEST=$TRAVIS_PULL_REQUEST \
   cicd/docker_push.sh || travis_terminate 1
+
+
+before_install: 
+  # install a newer docker version which supports buildx
+  - sudo rm -rf /var/lib/apt/lists/*
+  - curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add -
+  - sudo add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/ubuntu $(lsb_release -cs) edge"
+  - sudo apt-get update
+  - sudo apt-get -y -o Dpkg::Options::="--force-confnew" install docker-ce
+  - mkdir -vp ~/.docker/cli-plugins/
+  - curl --silent -L "https://github.com/docker/buildx/releases/download/v0.3.0/buildx-v0.3.0.linux-amd64" > ~/.docker/cli-plugins/docker-buildx
+  - chmod a+x ~/.docker/cli-plugins/docker-buildx
+
+before_script:
+  # login to docker at the very beginning, so we don't run into rate-limiting
+  - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin
+
+
+# currently the latest available - so we can install the latest docker
+dist: bionic

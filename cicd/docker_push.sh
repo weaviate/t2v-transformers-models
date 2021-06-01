@@ -13,7 +13,6 @@ set -e pipefail
 # - any commit is pushed as :<model>
 git_hash=
 pr=
-local_repo=${LOCAL_REPO?Variable LOCAL_REPO is required}
 remote_repo=${REMOTE_REPO?Variable REMOTE_REPO is required}
 model_name=${MODEL_NAME?Variable MODEL_NAME is required}
 docker_username=${DOCKER_USERNAME?Variable DOCKER_USERNAME is required}
@@ -42,6 +41,8 @@ function init() {
     pr="$GIT_PULL_REQUEST"
   fi
 
+  docker run --rm --privileged multiarch/qemu-user-static --reset -p yes
+  docker buildx create --use
   echo "$docker_password" | docker login -u "$docker_username" --password-stdin
 }
 
@@ -52,23 +53,27 @@ function push_main() {
     # The ones that are always pushed
 
     tag="$remote_repo:$model_name-$git_hash"
-    docker tag "$local_repo" "$tag" && docker push "$tag"
+    docker buildx build --platform=linux/arm64,linux/amd64 \
+      --build-arg "MODEL_NAME=$model_name" \
+      --push \
+      --tag "$tag" .
   fi
 }
 
 function push_tag() {
   if [ ! -z "$GIT_TAG" ]; then
-    tag="$remote_repo:$model_name-$GIT_TAG"
-    echo "Tag & Push $tag"
-    docker tag "$local_repo" "$tag" && docker push "$tag"
-
-    tag="$remote_repo:$model_name-latest"
-    echo "Tag & Push $tag"
-    docker tag "$local_repo" "$tag" && docker push "$tag"
-
+    tag_git="$remote_repo:$model_name-$GIT_TAG"
+    tag_latest="$remote_repo:$model_name-latest"
     tag="$remote_repo:$model_name"
-    echo "Tag & Push $tag"
-    docker tag "$local_repo" "$tag" && docker push "$tag"
+
+    echo "Tag & Push $tag, $tag_latest, $tag_git"
+    docker buildx build --platform=linux/arm64,linux/amd64 \
+      --build-arg "MODEL_NAME=$model_name" \
+      --push \
+      --tag "$tag_git" \
+      --tag "$tag_latest" \
+      --tag "$tag" \
+      .
   fi
 }
 
