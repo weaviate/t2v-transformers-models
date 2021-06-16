@@ -16,4 +16,6 @@ RUN ./download.py
 COPY . .
 
 ENTRYPOINT ["/bin/sh", "-c"]
+ARG DIMENSIONS
+ENV DIMENSIONS=$DIMENSIONS
 CMD ["uvicorn app:app --host 0.0.0.0 --port 8080"]
