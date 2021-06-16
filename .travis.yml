@@ -19,6 +19,36 @@ jobs:
 
     # to prevent spamming the pipeline, only include most models if there is a tag
     - env: 
+        MODEL_NAME: sentence-transformers/paraphrase-MiniLM-L6-v2
+        MODEL_TAG_NAME: sentence-transformers-paraphrase-MiniLM-L6-v2
+      if: tag IS present
+      stage: buildanddeploy
+    - env: 
+        MODEL_NAME: sentence-transformers/paraphrase-mpnet-base-v2
+        MODEL_TAG_NAME: sentence-transformers-paraphrase-mpnet-base-v2
+      if: tag IS present
+      stage: buildanddeploy
+    - env: 
+        MODEL_NAME: sentence-transformers/paraphrase-multilingual-mpnet-base-v2
+        MODEL_TAG_NAME: sentence-transformers-paraphrase-multilingual-mpnet-base-v2
+      if: tag IS present
+      stage: buildanddeploy
+    - env: 
+        MODEL_NAME: sentence-transformers/paraphrase-distilroberta-base-v2
+        MODEL_TAG_NAME: sentence-transformers-paraphrase-distilroberta-base-v2
+      if: tag IS present
+      stage: buildanddeploy
+    - env: 
+        MODEL_NAME: sentence-transformers/stsb-mpnet-base-v2
+        MODEL_TAG_NAME: sentence-transformers-stsb-mpnet-base-v2
+      if: tag IS present
+      stage: buildanddeploy
+    - env: 
+        MODEL_NAME: sentence-transformers/nli-mpnet-base-v2
+        MODEL_TAG_NAME: sentence-transformers-nli-mpnet-base-v2
+      if: tag IS present
+      stage: buildanddeploy
+    - env: 
         MODEL_NAME: sentence-transformers/stsb-distilbert-base 
         MODEL_TAG_NAME: sentence-transformers-stsb-distilbert-base
       if: tag IS present

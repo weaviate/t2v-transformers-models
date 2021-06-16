@@ -30,8 +30,11 @@ class SmokeTest(unittest.TestCase):
         resBody = res.json()
 
         self.assertEqual(200, res.status_code)
-        # TODO: Make dynamic when supporting models with other dimensions
-        self.assertEqual(768, len(resBody['vector']))
+
+        # below tests that what we deem a reasonable vector is returned. We are
+        # aware of 384 and 768 dim vectors, which should both fall in that
+        # range
+        self.assertTrue(len(resBody['vector']) > 100)
 
 
 if __name__ == "__main__":
