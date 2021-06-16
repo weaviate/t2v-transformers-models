@@ -26,6 +26,12 @@ jobs:
       if: tag IS present
       stage: buildanddeploy
     - env: 
+        MODEL_NAME: sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2
+        MODEL_TAG_NAME: sentence-transformers-paraphrase-multilingual-MiniLM-L12-v2
+        DIMENSIONS: '384'
+      if: tag IS present
+      stage: buildanddeploy
+    - env: 
         MODEL_NAME: sentence-transformers/paraphrase-mpnet-base-v2
         MODEL_TAG_NAME: sentence-transformers-paraphrase-mpnet-base-v2
       if: tag IS present
