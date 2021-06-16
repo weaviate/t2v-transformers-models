@@ -33,18 +33,19 @@ class Vectorizer:
             self.model.to(self.cuda_core)
         self.model.eval() # make sure we're in inference mode, not training
 
-        self.tokenizer = AutoTokenizer.from_pretrained(model_path)
+        self.tokenizer = AutoTokenizer.from_pretrained(model_path, pad_token='[PAD]')
+        self.model.resize_token_embeddings(len(self.tokenizer)) # some models like GPT do not have a [PAD] token
 
     def tokenize(self, text:str):
         return self.tokenizer(text, padding=True, truncation=True, max_length=500, 
                 add_special_tokens = True, return_tensors="pt")
 
-    def pool_mean(self, embeddings, attention_mask):
+    def pool_sum(self, embeddings, attention_mask):
         input_mask_expanded = attention_mask.unsqueeze(-1).expand(embeddings.size()).float()
         sum_embeddings = torch.sum(embeddings * input_mask_expanded, 1)
         sum_mask = torch.clamp(input_mask_expanded.sum(1), min=1e-9)
         sentences = sum_embeddings / sum_mask
-        return sentences.mean(0)
+        return sentences.sum(0)
 
     async def vectorize(self, text: str, config: VectorInputConfig):
         with torch.no_grad():
@@ -54,16 +55,14 @@ class Vectorizer:
             elapsed = time.time() - before
             print("finished sentence tokenization in {:.2f}".format(elapsed))
 
-            VECTOR_DIM = 768  # TODO: make dynamic
-
-            print("number of sentences: {}".format(len(sentences)))
-            number_of_batch_vectors = math.ceil(len(sentences) / MAX_BATCH_SIZE)
+            num_sentences = len(sentences)
+            print("number of sentences: {}".format(num_sentences))
+            number_of_batch_vectors = math.ceil(num_sentences / MAX_BATCH_SIZE)
             print("number of batches: {}".format(number_of_batch_vectors))
-            batch_vectors = torch.Tensor(number_of_batch_vectors, VECTOR_DIM)
+            batch_vectors = 0
             for i in range(0, number_of_batch_vectors):
                 start_index = i * MAX_BATCH_SIZE
                 end_index = start_index + MAX_BATCH_SIZE
-
 
                 before=time.time()
                 print("start tokenizing sentences: {}".format(sentences[start_index:end_index]))
@@ -76,15 +75,15 @@ class Vectorizer:
                 batch_results = self.model(**tokens)
                 pool_method = self.pool_method_from_config(config)
                 if pool_method == "cls":
-                    batch_vectors[i] = batch_results[0][:, 0, :].mean(0).detach()
+                    batch_vectors += batch_results.last_hidden_state[:, 0, :].sum(0)
                     continue
                 if pool_method == "masked_mean":
-                    batch_vectors[i] = self.pool_mean(batch_results[0], tokens['attention_mask'])
+                    batch_vectors += self.pool_sum(batch_results.last_hidden_state, tokens['attention_mask'])
                     continue
                 raise Exception("invalid pooling method '{}'".format(pool_method))
 
 
-            return batch_vectors.mean(0)
+            return batch_vectors.detach()/num_sentences
 
     def pool_method_from_config(self, config: VectorInputConfig):
         if config is None:

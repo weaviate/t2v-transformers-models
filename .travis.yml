@@ -1,6 +1,10 @@
 language: python
 python: 3.9
 
+branches:
+  only:
+  - main
+
 env:
   global:
   - LOCAL_REPO: transformers-inference
