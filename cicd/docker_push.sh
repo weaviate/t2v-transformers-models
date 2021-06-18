@@ -15,7 +15,6 @@ git_hash=
 pr=
 remote_repo=${REMOTE_REPO?Variable REMOTE_REPO is required}
 model_name=${MODEL_NAME?Variable MODEL_NAME is required}
-dimensions=${DIMENSIONS?Variable DIMENSIONS is required}
 original_model_name=$model_name
 docker_username=${DOCKER_USERNAME?Variable DOCKER_USERNAME is required}
 docker_password=${DOCKER_PASSWORD?Variable DOCKER_PASSWORD is required}
@@ -57,7 +56,6 @@ function push_main() {
     tag="$remote_repo:$model_name-$git_hash"
     docker buildx build --platform=linux/arm64,linux/amd64 \
       --build-arg "MODEL_NAME=$original_model_name" \
-      --build-arg "DIMENSIONS=$dimensions" \
       --push \
       --tag "$tag" .
   fi
@@ -72,7 +70,6 @@ function push_tag() {
     echo "Tag & Push $tag, $tag_latest, $tag_git"
     docker buildx build --platform=linux/arm64,linux/amd64 \
       --build-arg "MODEL_NAME=$original_model_name" \
-      --build-arg "DIMENSIONS=$dimensions" \
       --push \
       --tag "$tag_git" \
       --tag "$tag_latest" \
