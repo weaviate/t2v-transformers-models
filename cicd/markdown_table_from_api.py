@@ -12,7 +12,7 @@ asJSON = res.json()
 for opt in asJSON["options"]:
     name=opt["displayName"]
     description=opt["description"].replace('\n', '')
-    image=opt["name"]
-    if image == "_custom":
+    image='semitechnologies/transformers-inference:' + opt["name"]
+    if opt["name"] == "_custom":
         continue
     print(f"|{name}|{description}|{image}|")
