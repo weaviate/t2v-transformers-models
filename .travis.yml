@@ -57,6 +57,11 @@ jobs:
       if: tag IS present
       stage: buildanddeploy
     - env: 
+        MODEL_NAME: sentence-transformers/msmarco-distilbert-base-v3
+        MODEL_TAG_NAME: sentence-transformers-msmarco-distilbert-base-v3
+      if: tag IS present
+      stage: buildanddeploy
+    - env: 
         MODEL_NAME: sentence-transformers/stsb-distilbert-base 
         MODEL_TAG_NAME: sentence-transformers-stsb-distilbert-base
       if: tag IS present
