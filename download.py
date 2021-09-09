@@ -10,7 +10,7 @@ if model_name is None or model_name == "":
     print("Fatal: MODEL_NAME is required")
     sys.exit(1)
 
-print("Downloading model {} from huggingface model hub".format(model_name))
+print(f"Downloading model {model_name} from huggingface model hub")
 
 model = AutoModel.from_pretrained(model_name)
 tokenizer = AutoTokenizer.from_pretrained(model_name)

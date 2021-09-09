@@ -13,19 +13,11 @@ if cuda_env is not None and cuda_env == "true" or cuda_env == "1":
     cuda_core = os.getenv("CUDA_CORE")
     if cuda_core is None or cuda_core == "":
         cuda_core = "cuda:0"
-    print("[INFO] cuda core set to {}".format(cuda_core))
+    print(f"INFO:\tcuda core set to {cuda_core}")
 else:
-    print("[INFO] running on CPU")
+    print("INFO:\trunning on CPU")
 
-dims=768
-dims_env = os.getenv("DIMENSIONS")
-if dims_env is not None and dims_env != "":
-    dims = int(dims_env)
-    print("[INFO] Expecting {}-dimensional vectors".format(dims))
-else:
-    print("[INFO] Dimensions not explicitly configured, expecting {}-dimensional vectors".format(dims))
-
-vec = Vectorizer('./models/model', cuda_support, cuda_core, dims)
+vec = Vectorizer('./models/model', cuda_support, cuda_core)
 meta_config = Meta('./models/model')
 
 
