@@ -19,18 +19,23 @@ jobs:
 
     # to prevent spamming the pipeline, only include most models if there is a tag
     - env: 
-        MODEL_NAME: sentence-transformers/paraphrase-MiniLM-L6-v2
-        MODEL_TAG_NAME: sentence-transformers-paraphrase-MiniLM-L6-v2
+        MODEL_NAME: sentence-transformers/multi-qa-MiniLM-L6-cos-v1
+        MODEL_TAG_NAME: sentence-transformers-multi-qa-MiniLM-L6-cos-v1
       if: tag IS present
       stage: buildanddeploy
     - env: 
-        MODEL_NAME: sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2
-        MODEL_TAG_NAME: sentence-transformers-paraphrase-multilingual-MiniLM-L12-v2
+        MODEL_NAME: sentence-transformers/multi-qa-mpnet-base-cos-v1
+        MODEL_TAG_NAME: sentence-transformers-multi-qa-mpnet-base-cos-v1
       if: tag IS present
       stage: buildanddeploy
     - env: 
-        MODEL_NAME: sentence-transformers/paraphrase-mpnet-base-v2
-        MODEL_TAG_NAME: sentence-transformers-paraphrase-mpnet-base-v2
+        MODEL_NAME: sentence-transformers/all-mpnet-base-v2 
+        MODEL_TAG_NAME: sentence-transformers-all-mpnet-base-v2 
+      if: tag IS present
+      stage: buildanddeploy
+    - env: 
+        MODEL_NAME: sentence-transformers/all-MiniLM-L12-v2  
+        MODEL_TAG_NAME: sentence-transformers-all-MiniLM-L12-v2   
       if: tag IS present
       stage: buildanddeploy
     - env: 
@@ -38,66 +43,80 @@ jobs:
         MODEL_TAG_NAME: sentence-transformers-paraphrase-multilingual-mpnet-base-v2
       if: tag IS present
       stage: buildanddeploy
-    - env: 
-        MODEL_NAME: sentence-transformers/paraphrase-distilroberta-base-v2
-        MODEL_TAG_NAME: sentence-transformers-paraphrase-distilroberta-base-v2
-      if: tag IS present
-      stage: buildanddeploy
-    - env: 
-        MODEL_NAME: sentence-transformers/stsb-mpnet-base-v2
-        MODEL_TAG_NAME: sentence-transformers-stsb-mpnet-base-v2
-      if: tag IS present
-      stage: buildanddeploy
-    - env: 
-        MODEL_NAME: sentence-transformers/nli-mpnet-base-v2
-        MODEL_TAG_NAME: sentence-transformers-nli-mpnet-base-v2
-      if: tag IS present
-      stage: buildanddeploy
-    - env: 
-        MODEL_NAME: sentence-transformers/msmarco-distilbert-base-v3
-        MODEL_TAG_NAME: sentence-transformers-msmarco-distilbert-base-v3
-      if: tag IS present
-      stage: buildanddeploy
-    - env: 
-        MODEL_NAME: sentence-transformers/stsb-distilbert-base 
-        MODEL_TAG_NAME: sentence-transformers-stsb-distilbert-base
-      if: tag IS present
-      stage: buildanddeploy
-    - env: 
-        MODEL_NAME: sentence-transformers/quora-distilbert-base 
-        MODEL_TAG_NAME: sentence-transformers-quora-distilbert-base
-      if: tag IS present
-      stage: buildanddeploy
-    - env: 
-        MODEL_NAME: sentence-transformers/paraphrase-distilroberta-base-v1 
-        MODEL_TAG_NAME: sentence-transformers-paraphrase-distilroberta-base-v1
-      if: tag IS present
-      stage: buildanddeploy
-    - env: 
-        MODEL_NAME: kiri-ai/distiluse-base-multilingual-cased-et 
-        MODEL_TAG_NAME: kiri-ai-distiluse-base-multilingual-cased-et
-      if: tag IS present
-      stage: buildanddeploy
-    - env: 
-        MODEL_NAME: sentence-transformers/msmarco-distilroberta-base-v2 
-        MODEL_TAG_NAME: sentence-transformers-msmarco-distilroberta-base-v2
-      if: tag IS present
-      stage: buildanddeploy
-    - env: 
-        MODEL_NAME: sentence-transformers/msmarco-distilbert-base-v2 
-        MODEL_TAG_NAME: sentence-transformers-msmarco-distilbert-base-v2
-      if: tag IS present
-      stage: buildanddeploy
-    - env: 
-        MODEL_NAME: sentence-transformers/stsb-xlm-r-multilingual 
-        MODEL_TAG_NAME: sentence-transformers-stsb-xlm-r-multilingual
-      if: tag IS present
-      stage: buildanddeploy
-    - env: 
-        MODEL_NAME: sentence-transformers/paraphrase-xlm-r-multilingual-v1 
-        MODEL_TAG_NAME: sentence-transformers-paraphrase-xlm-r-multilingual-v1
-      if: tag IS present
-      stage: buildanddeploy
+
+    # no longer build the old models as the pipeline is already slow enough.
+    # They will still be accessible through Dockerhub, but will no longer be
+    # updated.
+    # - env: 
+    #     MODEL_NAME: sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2
+    #     MODEL_TAG_NAME: sentence-transformers-paraphrase-multilingual-MiniLM-L12-v2
+    #   if: tag IS present
+    #   stage: buildanddeploy
+    # - env: 
+    #     MODEL_NAME: sentence-transformers/paraphrase-mpnet-base-v2
+    #     MODEL_TAG_NAME: sentence-transformers-paraphrase-mpnet-base-v2
+    #   if: tag IS present
+    #   stage: buildanddeploy
+    # - env: 
+    #     MODEL_NAME: sentence-transformers/paraphrase-distilroberta-base-v2
+    #     MODEL_TAG_NAME: sentence-transformers-paraphrase-distilroberta-base-v2
+    #   if: tag IS present
+    #   stage: buildanddeploy
+    # - env: 
+    #     MODEL_NAME: sentence-transformers/stsb-mpnet-base-v2
+    #     MODEL_TAG_NAME: sentence-transformers-stsb-mpnet-base-v2
+    #   if: tag IS present
+    #   stage: buildanddeploy
+    # - env: 
+    #     MODEL_NAME: sentence-transformers/nli-mpnet-base-v2
+    #     MODEL_TAG_NAME: sentence-transformers-nli-mpnet-base-v2
+    #   if: tag IS present
+    #   stage: buildanddeploy
+    # - env: 
+    #     MODEL_NAME: sentence-transformers/msmarco-distilbert-base-v3
+    #     MODEL_TAG_NAME: sentence-transformers-msmarco-distilbert-base-v3
+    #   if: tag IS present
+    #   stage: buildanddeploy
+    # - env: 
+    #     MODEL_NAME: sentence-transformers/stsb-distilbert-base 
+    #     MODEL_TAG_NAME: sentence-transformers-stsb-distilbert-base
+    #   if: tag IS present
+    #   stage: buildanddeploy
+    # - env: 
+    #     MODEL_NAME: sentence-transformers/quora-distilbert-base 
+    #     MODEL_TAG_NAME: sentence-transformers-quora-distilbert-base
+    #   if: tag IS present
+    #   stage: buildanddeploy
+    # - env: 
+    #     MODEL_NAME: sentence-transformers/paraphrase-distilroberta-base-v1 
+    #     MODEL_TAG_NAME: sentence-transformers-paraphrase-distilroberta-base-v1
+    #   if: tag IS present
+    #   stage: buildanddeploy
+    # - env: 
+    #     MODEL_NAME: kiri-ai/distiluse-base-multilingual-cased-et 
+    #     MODEL_TAG_NAME: kiri-ai-distiluse-base-multilingual-cased-et
+    #   if: tag IS present
+    #   stage: buildanddeploy
+    # - env: 
+    #     MODEL_NAME: sentence-transformers/msmarco-distilroberta-base-v2 
+    #     MODEL_TAG_NAME: sentence-transformers-msmarco-distilroberta-base-v2
+    #   if: tag IS present
+    #   stage: buildanddeploy
+    # - env: 
+    #     MODEL_NAME: sentence-transformers/msmarco-distilbert-base-v2 
+    #     MODEL_TAG_NAME: sentence-transformers-msmarco-distilbert-base-v2
+    #   if: tag IS present
+    #   stage: buildanddeploy
+    # - env: 
+    #     MODEL_NAME: sentence-transformers/stsb-xlm-r-multilingual 
+    #     MODEL_TAG_NAME: sentence-transformers-stsb-xlm-r-multilingual
+    #   if: tag IS present
+    #   stage: buildanddeploy
+    # - env: 
+    #     MODEL_NAME: sentence-transformers/paraphrase-xlm-r-multilingual-v1 
+    #     MODEL_TAG_NAME: sentence-transformers-paraphrase-xlm-r-multilingual-v1
+    #   if: tag IS present
+    #   stage: buildanddeploy
 
     - name: Build the base for custom images
       script: GIT_BRANCH=$TRAVIS_BRANCH GIT_TAG=$TRAVIS_TAG GIT_PULL_REQUEST=$TRAVIS_PULL_REQUEST cicd/build_custom_base.sh
