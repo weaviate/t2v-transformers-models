@@ -130,7 +130,7 @@ script:
   GIT_BRANCH=$TRAVIS_BRANCH \
   GIT_TAG=$TRAVIS_TAG \
   GIT_PULL_REQUEST=$TRAVIS_PULL_REQUEST \
-  travis_wait 90 cicd/docker_push.sh || travis_terminate 1
+  travis_wait 120 cicd/docker_push.sh || travis_terminate 1
 
 
 before_install: 
