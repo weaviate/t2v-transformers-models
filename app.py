@@ -1,24 +1,36 @@
+import os
+from logging import getLogger
 from fastapi import FastAPI, Response, status
 from vectorizer import Vectorizer, VectorInput
 from meta import Meta
-import os
+
 
 app = FastAPI()
+vec : Vectorizer
+meta_config : Meta
+logger = getLogger('uvicorn')
 
-cuda_env = os.getenv("ENABLE_CUDA")
-cuda_support=False
-cuda_core=""
-if cuda_env is not None and cuda_env == "true" or cuda_env == "1":
-    cuda_support=True
-    cuda_core = os.getenv("CUDA_CORE")
-    if cuda_core is None or cuda_core == "":
-        cuda_core = "cuda:0"
-    print(f"INFO:\tcuda core set to {cuda_core}")
-else:
-    print("INFO:\trunning on CPU")
 
-vec = Vectorizer('./models/model', cuda_support, cuda_core)
-meta_config = Meta('./models/model')
+@app.on_event("startup")
+def startup_event():
+    global vec
+    global meta_config
+
+    cuda_env = os.getenv("ENABLE_CUDA")
+    cuda_support=False
+    cuda_core=""
+
+    if cuda_env is not None and cuda_env == "true" or cuda_env == "1":
+        cuda_support=True
+        cuda_core = os.getenv("CUDA_CORE")
+        if cuda_core is None or cuda_core == "":
+            cuda_core = "cuda:0"
+        logger.info(f"CUDA_CORE set to {cuda_core}")
+    else:
+        logger.info("Running on CPU")
+
+    vec = Vectorizer('./models/model', cuda_support, cuda_core)
+    meta_config = Meta('./models/model')
 
 
 @app.get("/.well-known/live", response_class=Response)
@@ -38,5 +50,8 @@ async def read_item(item: VectorInput, response: Response):
         vector = await vec.vectorize(item.text, item.config)
         return {"text": item.text, "vector": vector.tolist(), "dim": len(vector)}
     except Exception as e:
+        logger.exception(
+            'Something went wrong while vectorizing data.'
+        )
         response.status_code = status.HTTP_500_INTERNAL_SERVER_ERROR
         return {"error": str(e)}
