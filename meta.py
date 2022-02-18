@@ -10,3 +10,6 @@ class Meta:
         return {
             'model': self.config.to_dict()
         }
+
+    def getModelType(self):
+        return self.config.to_dict()['model_type']
