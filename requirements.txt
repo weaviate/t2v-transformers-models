@@ -1,8 +1,8 @@
-tokenizers==0.10.2
-transformers==4.6.1
+tokenizers==0.10.3
+transformers==4.16.2
 fastapi==0.63.0
 uvicorn==0.13.3
 nltk==3.5
-torch==1.8.1
+torch==1.10.2
 sentencepiece==0.1.95
 protobuf==3.14.0
