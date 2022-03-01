@@ -60,11 +60,13 @@ jobs:
         MODEL_TAG_NAME: sentence-transformers-gtr-t5-large
       if: tag IS present
       stage: buildanddeploy
-    - env:
-        MODEL_NAME: sentence-transformers/gtr-t5-xl
-        MODEL_TAG_NAME: sentence-transformers-gtr-t5-xl
-      if: tag IS present
-      stage: buildanddeploy
+    # Disabled due to memory exaustion in Travis, configuration options can be found here:
+    # https://docs.travis-ci.com/user/enterprise/worker-configuration/
+    # - env:
+    #     MODEL_NAME: sentence-transformers/gtr-t5-xl
+    #     MODEL_TAG_NAME: sentence-transformers-gtr-t5-xl
+    #   if: tag IS present
+    #   stage: buildanddeploy
 
     # no longer build the old models as the pipeline is already slow enough.
     # They will still be accessible through Dockerhub, but will no longer be
