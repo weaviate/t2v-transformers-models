@@ -33,6 +33,8 @@ The pre-built models include:
 |`sentence-transformers/msmarco-distilbert-base-v2` ([Info](https://huggingface.co/sentence-transformers/msmarco-distilbert-base-v2))|`semitechnologies/transformers-inference:sentence-transformers-msmarco-distilbert-base-v2`|
 |`sentence-transformers/stsb-xlm-r-multilingual` ([Info](https://huggingface.co/sentence-transformers/stsb-xlm-r-multilingual))|`semitechnologies/transformers-inference:sentence-transformers-stsb-xlm-r-multilingual`|
 |`sentence-transformers/paraphrase-xlm-r-multilingual-v1` ([Info](https://huggingface.co/sentence-transformers/paraphrase-xlm-r-multilingual-v1))|`semitechnologies/transformers-inference:sentence-transformers-paraphrase-xlm-r-multilingual-v1`|
+|`sentence-transformers/gtr-t5-base` ([Info](https://huggingface.co/sentence-transformers/gtr-t5-base))|`semitechnologies/transformers-inference:sentence-transformers-gtr-t5-base`|
+|`sentence-transformers/gtr-t5-large` ([Info](https://huggingface.co/sentence-transformers/gtr-t5-large))|`semitechnologies/transformers-inference:sentence-transformers-gtr-t5-large`|
 
 The above image names always point to the latest version of the inference
 container including the model. You can also make that explicit by appending
