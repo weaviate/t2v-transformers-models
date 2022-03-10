@@ -30,8 +30,8 @@ def startup_event():
         logger.info("Running on CPU")
 
     meta_config = Meta('./models/model')
-    model_type = meta_config.getModelType()
-    vec = Vectorizer('./models/model', cuda_support, cuda_core, model_type)
+    vec = Vectorizer('./models/model', cuda_support, cuda_core,
+                     meta_config.getModelType(), meta_config.get_architecture())
 
 
 @app.get("/.well-known/live", response_class=Response)
