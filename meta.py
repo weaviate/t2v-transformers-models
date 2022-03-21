@@ -13,3 +13,10 @@ class Meta:
 
     def getModelType(self):
         return self.config.to_dict()['model_type']
+
+    def get_architecture(self):
+        architecture = None
+        conf = self.config.to_dict()
+        if "architectures" in conf:
+            architecture = conf["architectures"][0]
+        return architecture

@@ -138,6 +138,7 @@ jobs:
     #   stage: buildanddeploy
 
     - name: Build the base for custom images
+      if: env(DOCKER_PASSWORD) IS present
       script: GIT_BRANCH=$TRAVIS_BRANCH GIT_TAG=$TRAVIS_TAG GIT_PULL_REQUEST=$TRAVIS_PULL_REQUEST cicd/build_custom_base.sh
       stage: postbuild
 
@@ -145,12 +146,18 @@ script:
 - cicd/build.sh || travis_terminate 1
 - cicd/test.sh || travis_terminate 1
 - |-
-  # Push docker image
-  GIT_BRANCH=$TRAVIS_BRANCH \
-  GIT_TAG=$TRAVIS_TAG \
-  GIT_PULL_REQUEST=$TRAVIS_PULL_REQUEST \
-  travis_wait 120 cicd/docker_push.sh || travis_terminate 1
-
+  if [ -n "$DOCKER_PASSWORD" ]
+  then
+    # Push docker image
+    GIT_BRANCH=$TRAVIS_BRANCH \
+    GIT_TAG=$TRAVIS_TAG \
+    GIT_PULL_REQUEST=$TRAVIS_PULL_REQUEST \
+    travis_wait 120 cicd/docker_push.sh || travis_terminate 1
+  else
+    # Skip pushing docker image
+    echo "Skipping docker image push step. Tests passed."
+    travis_terminate 0
+  fi
 
 before_install: 
   # install a newer docker version which supports buildx
@@ -164,9 +171,12 @@ before_install:
   - chmod a+x ~/.docker/cli-plugins/docker-buildx
 
 before_script:
-  # login to docker at the very beginning, so we don't run into rate-limiting
-  - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin
-
+  # if there is a password provided login to docker at the very beginning, so we don't run into rate-limiting
+- |-
+  if [ -n "$DOCKER_PASSWORD" ]
+  then
+    echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin
+  fi
 
 # currently the latest available - so we can install the latest docker
 dist: bionic
