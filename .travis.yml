@@ -60,6 +60,26 @@ jobs:
         MODEL_TAG_NAME: sentence-transformers-gtr-t5-large
       if: tag IS present
       stage: buildanddeploy
+    - env:
+        MODEL_NAME: vblagoje/dpr-ctx_encoder-single-lfqa-wiki
+        MODEL_TAG_NAME: vblagoje-dpr-ctx_encoder-single-lfqa-wiki
+      if: tag IS present
+      stage: buildanddeploy
+    - env:
+        MODEL_NAME: vblagoje/dpr-question_encoder-single-lfqa-wiki
+        MODEL_TAG_NAME: vblagoje-dpr-question_encoder-single-lfqa-wiki
+      if: tag IS present
+      stage: buildanddeploy
+    - env:
+        MODEL_NAME: facebook/dpr-ctx_encoder-single-nq-base
+        MODEL_TAG_NAME: facebook-dpr-ctx_encoder-single-nq-base
+      if: tag IS present
+      stage: buildanddeploy
+    - env:
+        MODEL_NAME: facebook/dpr-question_encoder-single-nq-base
+        MODEL_TAG_NAME: facebook-dpr-question_encoder-single-nq-base
+      if: tag IS present
+      stage: buildanddeploy
     # Disabled due to memory exaustion in Travis, configuration options can be found here:
     # https://docs.travis-ci.com/user/enterprise/worker-configuration/
     # - env:
