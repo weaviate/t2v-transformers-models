@@ -195,9 +195,10 @@ class T5Model(HFModel):
 
 class HFModelOnInferentia(HFModel):
     """A HuggingFace model running on the AWS Inferentia chip"""
-    import torch_neuron
 
     def __init__(self, logger: Logger, max_length: int):
+        import torch_neuron
+
         super().__init__()
         self.model = None
         self.tokenizer = None
