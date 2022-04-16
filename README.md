@@ -105,3 +105,17 @@ docker build -f my-model.Dockerfile -t my-model-inference .
 That's it! You can now push your image to your favorite registry or reference
 it locally in your Weaviate `docker-compose.yaml` using the docker tag
 `my-model-inference`.
+
+### Running on AWS Inferentia
+
+You can run transformer models faster on 
+[AWS Inferentia chips](https://huggingface.co/blog/bert-inferentia-sagemaker#1-convert-your-hugging-face-transformer-to-aws-neuron).
+
+The model will be compiled for AWS Neuron at runtime - when it loads up.
+That usually takes about 2-5 minutes depending on the model size.
+
+Set the following env variables for the container:
+```
+ENABLE_INFERENTIA=true       # enable compiling the model for the Neuron architecture
+NEURONCORE_PIPELINE_CORE=4   # number of Neuron cores the model will be compiled for
+```
