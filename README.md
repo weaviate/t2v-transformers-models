@@ -119,3 +119,10 @@ Set the following env variables for the container:
 ENABLE_INFERENTIA=true       # enable compiling the model for the Neuron architecture
 NEURONCORE_PIPELINE_CORE=4   # number of Neuron cores the model will be compiled for
 ```
+
+And modify the `Dockerfile` to use the `requirements-inferentia.txt` to install the required
+Python packages:
+```
+RUN pip3 config set global.extra-index-url https://pip.repos.neuron.amazonaws.com && \
+    pip3 install -r requirements-inferentia.txt
+```
