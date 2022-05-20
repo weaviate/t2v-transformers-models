@@ -52,10 +52,6 @@ def meta():
 async def read_item(item: VectorInput, response: Response):
     try:
         vector = await vec.vectorize(item.text, item.config)
-        print("### this is a tensor")
-        print(vector)
-        print("## This was the item text ##### ")
-        print(item.text)
         return {"text": item.text, "vector": vector.tolist(), "dim": len(vector)}
     except Exception as e:
         logger.exception('Something went wrong while vectorizing data.')
