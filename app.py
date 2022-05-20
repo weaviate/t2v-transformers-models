@@ -10,7 +10,6 @@ vec : Vectorizer
 meta_config : Meta
 logger = getLogger('uvicorn')
 
-
 @app.on_event("startup")
 def startup_event():
     global vec
@@ -19,6 +18,7 @@ def startup_event():
     cuda_env = os.getenv("ENABLE_CUDA")
     cuda_support=False
     cuda_core=""
+    mps_env = os.getenv("ENABLE_MPS")
 
     if cuda_env is not None and cuda_env == "true" or cuda_env == "1":
         cuda_support=True
@@ -26,12 +26,15 @@ def startup_event():
         if cuda_core is None or cuda_core == "":
             cuda_core = "cuda:0"
         logger.info(f"CUDA_CORE set to {cuda_core}")
+    if mps_env:
+        logger.info("Running on MPS")
+        mps_env = True
     else:
         logger.info("Running on CPU")
 
     meta_config = Meta('./models/model')
     vec = Vectorizer('./models/model', cuda_support, cuda_core,
-                     meta_config.getModelType(), meta_config.get_architecture())
+                     meta_config.getModelType(), meta_config.get_architecture(), mps_env)
 
 
 @app.get("/.well-known/live", response_class=Response)
@@ -49,10 +52,12 @@ def meta():
 async def read_item(item: VectorInput, response: Response):
     try:
         vector = await vec.vectorize(item.text, item.config)
+        print("### this is a tensor")
+        print(vector)
+        print("## This was the item text ##### ")
+        print(item.text)
         return {"text": item.text, "vector": vector.tolist(), "dim": len(vector)}
     except Exception as e:
-        logger.exception(
-            'Something went wrong while vectorizing data.'
-        )
+        logger.exception('Something went wrong while vectorizing data.')
         response.status_code = status.HTTP_500_INTERNAL_SERVER_ERROR
         return {"error": str(e)}
