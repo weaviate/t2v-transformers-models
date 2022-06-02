@@ -105,3 +105,23 @@ docker build -f my-model.Dockerfile -t my-model-inference .
 That's it! You can now push your image to your favorite registry or reference
 it locally in your Weaviate `docker-compose.yaml` using the docker tag
 `my-model-inference`.
+
+### M1 Support 
+
+##### Prerequisites 
+> NOTE
+> We recommand using virtualenv for this procedure
+
+1. Make sure you macOSX version is  at least MacOS 12.3
+2. clone this repo
+3. run the pytorch nightly install command 
+4. `brew install pkgconfig cmake`
+```
+pip3 install --pre torch torchvision torchaudio --extra-index-url https://download.pytorch.org/whl/nightly/cpu
+```
+
+##### Install
+To use pytoech M1 support locally clone the repo and run the following command: 
+
+1. run `pip install -r requirements.txt`
+2. `uvicorn app:app --host 0.0.0.0 --port 8080`
