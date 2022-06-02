@@ -1,4 +1,4 @@
 sentence-transformers==2.2.0
-fastapi==0.63.0
+fastapi==0.78.0
 uvicorn==0.13.3
 protobuf==3.14.0
