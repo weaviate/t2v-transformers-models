@@ -17,10 +17,11 @@ objects_batch = []
 with open('[CSV]', newline='') as f:
     reader = csv.DictReader(f)
     for line in reader:
+        pass
+    ## Change me!
       
             
     
-
 sentences = [obj["sentence"] for obj in weaviate_objects_batch]
 
 
