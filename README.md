@@ -115,6 +115,7 @@ it locally in your Weaviate `docker-compose.yaml` using the docker tag
 1. Make sure you macOSX version is  at least MacOS 12.3
 2. clone this repo
 3. run the pytorch nightly install command 
+4. `brew install pkgconfig cmake`
 ```
 pip3 install --pre torch torchvision torchaudio --extra-index-url https://download.pytorch.org/whl/nightly/cpu
 ```
