@@ -123,5 +123,5 @@ pip3 install --pre torch torchvision torchaudio --extra-index-url https://downlo
 ##### Install
 To use pytoech M1 support locally clone the repo and run the following command: 
 
-1. run `pip install -r requirements-m1.txt`
+1. run `pip install -r requirements.txt`
 2. `uvicorn app:app --host 0.0.0.0 --port 8080`

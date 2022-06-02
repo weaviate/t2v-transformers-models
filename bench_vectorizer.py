@@ -13,23 +13,11 @@ vec = Vectorizer('./models/model', False, "",
 async def vectorize(text):
     return await vec.vectorize(text, None)
     
-
-weaviate_objects_batch = []
-with open('/Users/raam/code/database_explorer/fraudTest.csv', newline='') as f:
+objects_batch = []
+with open('[CSV]', newline='') as f:
     reader = csv.DictReader(f)
     for line in reader:
-        fields = ["identifier","merchant", "category", "first", "last", "street", "city", "state", "job", ]
-        trans = {}
-        for f in fields:
-            trans[f] = line[f]
-        sentance_trans = copy.deepcopy(trans)
-        del sentance_trans["identifier"]   
-        trans["sentence"] = " ".join(sentance_trans.values())
-        # print(trans["sentence"])    
-        weaviate_objects_batch.append(trans)
-        if len(weaviate_objects_batch) > 1000:
-            print("break~")
-            break
+      
             
     
 
