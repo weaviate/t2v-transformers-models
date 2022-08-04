@@ -10,6 +10,10 @@ either from the Huggingface Model Hub or from your disk.
 This makes this an easy way to deploy your Weaviate-optimized transformers
 NLP inference model to production using Docker or Kubernetes.
 
+## Documentation
+
+Documentation for this module can be found [here](https://weaviate.io/developers/weaviate/current/reader-generator-modules/qna-transformers.html).
+
 ## Choose your model
 
 ### Pre-built images
