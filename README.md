@@ -12,7 +12,7 @@ NLP inference model to production using Docker or Kubernetes.
 
 ## Documentation
 
-Documentation for this module can be found [here](https://weaviate.io/developers/weaviate/current/reader-generator-modules/qna-transformers.html).
+Documentation for this module can be found [here](https://weaviate.io/developers/weaviate/current/retriever-vectorizer-modules/text2vec-transformers.html).
 
 ## Choose your model
 
