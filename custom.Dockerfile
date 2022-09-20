@@ -15,4 +15,4 @@ RUN ./custom_prerequisites.py
 COPY . .
 
 ENTRYPOINT ["/bin/sh", "-c"]
-CMD ["uvicorn app:app --host 0.0.0.0 --port 8080"]
+CMD ["uvicorn app:app --host 0.0.0.0 --port 8080 --timeout-keep-alive 60"]
