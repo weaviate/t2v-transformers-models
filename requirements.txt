@@ -1,8 +1,8 @@
-tokenizers==0.11.6
-transformers==4.20.1
-fastapi==0.78.0
-uvicorn==0.18.2
+tokenizers==0.13.1
+transformers==4.23.1
+fastapi==0.85.1
+uvicorn==0.19.0
 nltk==3.7
-torch==1.12.0
-sentencepiece==0.1.96
-protobuf==4.21.2
+torch==1.13.0
+sentencepiece==0.1.97
+protobuf==4.21.9
