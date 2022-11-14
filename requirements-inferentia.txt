@@ -1,0 +1,10 @@
+tokenizers==0.10.3
+transformers==4.16.2
+fastapi==0.63.0
+uvicorn==0.13.3
+neuron-cc[tensorflow]
+nltk==3.5
+torch==1.10.2
+torch-neuron
+sentencepiece==0.1.95
+protobuf==3.14.0
