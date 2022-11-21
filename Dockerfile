@@ -1,13 +1,10 @@
-FROM python:3.9-slim-buster
+FROM python:3.10.8-slim-bullseye
 
 WORKDIR /app
 
-RUN apt-get update && apt-get -y install curl build-essential
-RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
-ENV PATH="$PATH:/root/.cargo/bin"
-
 COPY requirements.txt .
-RUN pip3 install -r requirements.txt
+RUN apt-get update && apt-get -y install curl build-essential && curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y && pip3 install -r requirements.txt && apt remove -y curl build-essential && apt -y autoremove
+ENV PATH="$PATH:/root/.cargo/bin"
 
 ARG MODEL_NAME
 COPY download.py .
