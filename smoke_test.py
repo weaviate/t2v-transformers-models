@@ -1,6 +1,6 @@
+import time
 import unittest
 import requests
-import time
 
 
 class SmokeTest(unittest.TestCase):

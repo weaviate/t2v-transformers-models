@@ -1,10 +1,7 @@
 requests==2.28.1
-tokenizers==0.11.6
-transformers==4.20.1
-fastapi==0.78.0
-uvicorn==0.18.2
+transformers==4.24.0
+fastapi==0.87.0
+uvicorn==0.20.0
 nltk==3.7
-torch==1.12.0
-sentencepiece==0.1.96
-protobuf==4.21.2
+torch==1.13.0
 pytest
