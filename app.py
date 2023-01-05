@@ -22,7 +22,7 @@ def startup_event():
         try:
             cuda_memory_pct = float(os.getenv("CUDA_MEMORY_PCT"))
         except ValueError:
-            logger.info(f"Invalid CUDA_MEMORY_PCT (should be between 0.0-1.0)")
+            logger.error(f"Invalid CUDA_MEMORY_PCT (should be between 0.0-1.0)")
     if 0.0 <= cuda_memory_pct <= 1.0:
         logger.info(f"CUDA_MEMORY_PCT set to {cuda_memory_pct}")
     cuda_support=False
