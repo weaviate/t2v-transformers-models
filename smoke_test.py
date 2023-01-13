@@ -11,6 +11,7 @@ class SmokeTest(unittest.TestCase):
             try:
                 res = requests.get(url)
                 if res.status_code == 204:
+                    print("Weaviate is working starting tests")
                     return
                 else:
                     raise Exception(
