@@ -61,6 +61,11 @@ jobs:
       if: tag IS present
       stage: buildanddeploy
     - env:
+        MODEL_NAME: sentence-transformers/sentence-t5-base
+        MODEL_TAG_NAME: sentence-transformers-sentence-t5-base
+      if: tag IS present
+      stage: buildanddeploy
+    - env:
         MODEL_NAME: vblagoje/dpr-ctx_encoder-single-lfqa-wiki
         MODEL_TAG_NAME: vblagoje-dpr-ctx_encoder-single-lfqa-wiki
       if: tag IS present
