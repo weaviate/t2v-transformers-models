@@ -1,0 +1,95 @@
+name: Main
+
+on:
+  push:
+    branches:
+      - main
+    tags:
+      - '**'
+    paths-ignore:
+      - README.md
+      - LICENSE
+  pull_request:
+
+jobs:
+  build-image:
+    name: Build image
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        include:
+          - model_name: "distilbert-base-uncased"
+            model_tag_name: "distilbert-base-uncased"
+          # - model_name: sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2
+          #   model_tag_name: sentence-transformers-paraphrase-multilingual-MiniLM-L12-v2
+          # - model_name: sentence-transformers/multi-qa-MiniLM-L6-cos-v1
+          #   model_tag_name: sentence-transformers-multi-qa-MiniLM-L6-cos-v1
+          # - model_name: sentence-transformers/multi-qa-mpnet-base-cos-v1
+          #   model_tag_name: sentence-transformers-multi-qa-mpnet-base-cos-v1
+          # - model_name: sentence-transformers/all-mpnet-base-v2
+          #   model_tag_name: sentence-transformers-all-mpnet-base-v2
+          # - model_name: sentence-transformers/all-MiniLM-L12-v2
+          #   model_tag_name: sentence-transformers-all-MiniLM-L12-v2
+          # - model_name: sentence-transformers/paraphrase-multilingual-mpnet-base-v2
+          #   model_tag_name: sentence-transformers-paraphrase-multilingual-mpnet-base-v2
+          # - model_name: sentence-transformers/gtr-t5-base
+          #   model_tag_name: sentence-transformers-gtr-t5-base
+          # - model_name: sentence-transformers/gtr-t5-large
+          #   model_tag_name: sentence-transformers-gtr-t5-large
+          # - model_name: sentence-transformers/sentence-t5-base
+          #   model_tag_name: sentence-transformers-sentence-t5-base
+          # - model_name: vblagoje/dpr-ctx_encoder-single-lfqa-wiki
+          #   model_tag_name: vblagoje-dpr-ctx_encoder-single-lfqa-wiki
+          # - model_name: vblagoje/dpr-question_encoder-single-lfqa-wiki
+          #   model_tag_name: vblagoje-dpr-question_encoder-single-lfqa-wiki
+          # - model_name: facebook/dpr-ctx_encoder-single-nq-base
+          #   model_tag_name: facebook-dpr-ctx_encoder-single-nq-base
+          # - model_name: facebook/dpr-question_encoder-single-nq-base
+          #   model_tag_name: facebook-dpr-question_encoder-single-nq-base
+    env:
+      LOCAL_REPO: transformers-inference
+      REMOTE_REPO: semitechnologies/transformers-inference
+      MODEL_NAME: ${{matrix.model_name}}
+      MODEL_TAG_NAME: ${{matrix.model_tag_name}}
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-python@v4
+        with:
+          python-version: "3.9"
+          cache: 'pip' # caching pip dependencies
+      - name: Login to Docker Hub
+        uses: docker/login-action@v2
+        with:
+          username: ${{secrets.DOCKER_USERNAME}}
+          password: ${{secrets.DOCKER_PASSWORD}}
+      - name: Build and test
+        run: |
+          cicd/build.sh || exit 1
+          cicd/test.sh || exit 1
+      - name: Deploy
+        if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags')
+        run: |
+          export GIT_TAG=$GITHUB_HEAD_REF
+          cicd/docker_push.sh || exit 1
+  build-custom-image:
+    name: Build custom image
+    runs-on: ubuntu-latest
+    env:
+      LOCAL_REPO: transformers-inference
+      REMOTE_REPO: semitechnologies/transformers-inference
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-python@v4
+        with:
+          python-version: "3.9"
+          cache: 'pip' # caching pip dependencies
+      - name: Login to Docker Hub
+        uses: docker/login-action@v2
+        with:
+          username: ${{secrets.DOCKER_USERNAME}}
+          password: ${{secrets.DOCKER_PASSWORD}}
+      - name: Deploy
+        if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags')
+        run: |
+          export GIT_TAG=$GITHUB_HEAD_REF
+          cicd/build_custom_base.sh || exit 1
