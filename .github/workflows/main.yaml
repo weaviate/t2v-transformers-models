@@ -20,32 +20,32 @@ jobs:
         include:
           - model_name: "distilbert-base-uncased"
             model_tag_name: "distilbert-base-uncased"
-          # - model_name: sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2
-          #   model_tag_name: sentence-transformers-paraphrase-multilingual-MiniLM-L12-v2
-          # - model_name: sentence-transformers/multi-qa-MiniLM-L6-cos-v1
-          #   model_tag_name: sentence-transformers-multi-qa-MiniLM-L6-cos-v1
-          # - model_name: sentence-transformers/multi-qa-mpnet-base-cos-v1
-          #   model_tag_name: sentence-transformers-multi-qa-mpnet-base-cos-v1
-          # - model_name: sentence-transformers/all-mpnet-base-v2
-          #   model_tag_name: sentence-transformers-all-mpnet-base-v2
-          # - model_name: sentence-transformers/all-MiniLM-L12-v2
-          #   model_tag_name: sentence-transformers-all-MiniLM-L12-v2
-          # - model_name: sentence-transformers/paraphrase-multilingual-mpnet-base-v2
-          #   model_tag_name: sentence-transformers-paraphrase-multilingual-mpnet-base-v2
-          # - model_name: sentence-transformers/gtr-t5-base
-          #   model_tag_name: sentence-transformers-gtr-t5-base
-          # - model_name: sentence-transformers/gtr-t5-large
-          #   model_tag_name: sentence-transformers-gtr-t5-large
-          # - model_name: sentence-transformers/sentence-t5-base
-          #   model_tag_name: sentence-transformers-sentence-t5-base
-          # - model_name: vblagoje/dpr-ctx_encoder-single-lfqa-wiki
-          #   model_tag_name: vblagoje-dpr-ctx_encoder-single-lfqa-wiki
-          # - model_name: vblagoje/dpr-question_encoder-single-lfqa-wiki
-          #   model_tag_name: vblagoje-dpr-question_encoder-single-lfqa-wiki
-          # - model_name: facebook/dpr-ctx_encoder-single-nq-base
-          #   model_tag_name: facebook-dpr-ctx_encoder-single-nq-base
-          # - model_name: facebook/dpr-question_encoder-single-nq-base
-          #   model_tag_name: facebook-dpr-question_encoder-single-nq-base
+          - model_name: sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2
+            model_tag_name: sentence-transformers-paraphrase-multilingual-MiniLM-L12-v2
+          - model_name: sentence-transformers/multi-qa-MiniLM-L6-cos-v1
+            model_tag_name: sentence-transformers-multi-qa-MiniLM-L6-cos-v1
+          - model_name: sentence-transformers/multi-qa-mpnet-base-cos-v1
+            model_tag_name: sentence-transformers-multi-qa-mpnet-base-cos-v1
+          - model_name: sentence-transformers/all-mpnet-base-v2
+            model_tag_name: sentence-transformers-all-mpnet-base-v2
+          - model_name: sentence-transformers/all-MiniLM-L12-v2
+            model_tag_name: sentence-transformers-all-MiniLM-L12-v2
+          - model_name: sentence-transformers/paraphrase-multilingual-mpnet-base-v2
+            model_tag_name: sentence-transformers-paraphrase-multilingual-mpnet-base-v2
+          - model_name: sentence-transformers/gtr-t5-base
+            model_tag_name: sentence-transformers-gtr-t5-base
+          - model_name: sentence-transformers/gtr-t5-large
+            model_tag_name: sentence-transformers-gtr-t5-large
+          - model_name: sentence-transformers/sentence-t5-base
+            model_tag_name: sentence-transformers-sentence-t5-base
+          - model_name: vblagoje/dpr-ctx_encoder-single-lfqa-wiki
+            model_tag_name: vblagoje-dpr-ctx_encoder-single-lfqa-wiki
+          - model_name: vblagoje/dpr-question_encoder-single-lfqa-wiki
+            model_tag_name: vblagoje-dpr-question_encoder-single-lfqa-wiki
+          - model_name: facebook/dpr-ctx_encoder-single-nq-base
+            model_tag_name: facebook-dpr-ctx_encoder-single-nq-base
+          - model_name: facebook/dpr-question_encoder-single-nq-base
+            model_tag_name: facebook-dpr-question_encoder-single-nq-base
     env:
       LOCAL_REPO: transformers-inference
       REMOTE_REPO: semitechnologies/transformers-inference
