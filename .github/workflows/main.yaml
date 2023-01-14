@@ -72,7 +72,7 @@ jobs:
           DOCKER_USERNAME: ${{secrets.DOCKER_USERNAME}}
           DOCKER_PASSWORD: ${{secrets.DOCKER_PASSWORD}}
         run: |
-          export GIT_TAG=$GITHUB_HEAD_REF
+          export GIT_TAG=${GITHUB_REF##*/}
           cicd/docker_push.sh || exit 1
   build-custom-image:
     name: Build custom image
@@ -96,5 +96,5 @@ jobs:
           DOCKER_USERNAME: ${{secrets.DOCKER_USERNAME}}
           DOCKER_PASSWORD: ${{secrets.DOCKER_PASSWORD}}
         run: |
-          export GIT_TAG=$GITHUB_HEAD_REF
+          export GIT_TAG=${GITHUB_REF##*/}
           cicd/build_custom_base.sh || exit 1
