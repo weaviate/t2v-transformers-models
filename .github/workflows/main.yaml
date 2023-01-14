@@ -68,6 +68,9 @@ jobs:
           cicd/test.sh || exit 1
       - name: Deploy
         if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags')
+        env:
+          DOCKER_USERNAME: ${{secrets.DOCKER_USERNAME}}
+          DOCKER_PASSWORD: ${{secrets.DOCKER_PASSWORD}}
         run: |
           export GIT_TAG=$GITHUB_HEAD_REF
           cicd/docker_push.sh || exit 1
@@ -82,7 +85,6 @@ jobs:
       - uses: actions/setup-python@v4
         with:
           python-version: "3.9"
-          cache: 'pip' # caching pip dependencies
       - name: Login to Docker Hub
         uses: docker/login-action@v2
         with:
@@ -90,6 +92,9 @@ jobs:
           password: ${{secrets.DOCKER_PASSWORD}}
       - name: Deploy
         if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags')
+        env:
+          DOCKER_USERNAME: ${{secrets.DOCKER_USERNAME}}
+          DOCKER_PASSWORD: ${{secrets.DOCKER_PASSWORD}}
         run: |
           export GIT_TAG=$GITHUB_HEAD_REF
           cicd/build_custom_base.sh || exit 1
