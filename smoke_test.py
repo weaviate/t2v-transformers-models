@@ -18,7 +18,7 @@ class SmokeTest(unittest.TestCase):
                             "status code is {}".format(res.status_code))
             except Exception as e:
                 print("Attempt {}: {}".format(i, e))
-                time.sleep(1)
+                time.sleep(2)
 
         raise Exception("did not start up")
 
