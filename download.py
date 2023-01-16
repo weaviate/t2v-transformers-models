@@ -1,9 +1,14 @@
 #!/usr/bin/env python3
 
-from transformers import AutoModel, AutoTokenizer, AutoConfig
-import nltk
 import os
 import sys
+import nltk
+from transformers import (
+    AutoModel,
+    AutoTokenizer,
+    AutoConfig,
+)
+
 
 model_name = os.getenv('MODEL_NAME', None)
 force_automodel = os.getenv('FORCE_AUTOMODEL', False)

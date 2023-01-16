@@ -1,5 +1,6 @@
 from transformers import AutoConfig
 
+
 class Meta:
     config: AutoConfig
 

@@ -1,11 +1,17 @@
 import math
 from typing import Optional
-
 import torch
 from nltk.tokenize import sent_tokenize
 from pydantic import BaseModel
-from transformers import AutoModel, AutoTokenizer, T5ForConditionalGeneration, T5Tokenizer, DPRContextEncoder, \
-    DPRQuestionEncoder
+from transformers import (
+    AutoModel,
+    AutoTokenizer,
+    T5ForConditionalGeneration,
+    T5Tokenizer,
+    DPRContextEncoder,
+    DPRQuestionEncoder,
+)
+
 
 # limit transformer batch size to limit parallel inference, otherwise we run
 # into memory problems

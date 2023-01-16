@@ -1,10 +1,9 @@
-FROM python:3.9-slim-buster
+FROM python:3.10-slim
 
 WORKDIR /app
 
-RUN apt-get update && apt-get -y install curl build-essential
-RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
-ENV PATH="$PATH:/root/.cargo/bin"
+RUN apt-get update 
+RUN pip install --upgrade pip setuptools
 
 COPY requirements.txt .
 RUN pip3 install -r requirements.txt
