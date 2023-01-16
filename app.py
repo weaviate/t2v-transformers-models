@@ -53,6 +53,7 @@ def meta():
     return meta_config.get()
 
 
+@app.post("/vectors")
 @app.post("/vectors/")
 async def read_item(item: VectorInput, response: Response):
     try:
