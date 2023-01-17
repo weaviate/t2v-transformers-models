@@ -33,10 +33,10 @@ class Vectorizer:
     cuda_core: str
     model_type: str
 
-    def __init__(self, model_path: str, cuda_support: bool, cuda_core: str, cuda_memory_pct: float, model_type: str, architecture: str):
+    def __init__(self, model_path: str, cuda_support: bool, cuda_core: str, cuda_per_process_memory_fraction: float, model_type: str, architecture: str):
         self.cuda = cuda_support
         self.cuda_core = cuda_core
-        self.cuda_memory_pct = cuda_memory_pct
+        self.cuda_per_process_memory_fraction = cuda_per_process_memory_fraction
         self.model_type = model_type
 
         self.model_delegate: HFModel = ModelFactory.model(model_type, architecture)
@@ -44,8 +44,8 @@ class Vectorizer:
 
         if self.cuda:
             self.model.to(self.cuda_core)
-            if self.cuda_memory_pct:
-                torch.cuda.set_per_process_memory_fraction(self.cuda_memory_pct)
+            if self.cuda_per_process_memory_fraction:
+                torch.cuda.set_per_process_memory_fraction(self.cuda_per_process_memory_fraction)
         self.model.eval() # make sure we're in inference mode, not training
 
         self.tokenizer = self.model_delegate.create_tokenizer(model_path)
