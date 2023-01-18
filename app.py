@@ -17,6 +17,14 @@ def startup_event():
     global meta_config
 
     cuda_env = os.getenv("ENABLE_CUDA")
+    cuda_per_process_memory_fraction = 1.0
+    if "CUDA_PER_PROCESS_MEMORY_FRACTION" in os.environ:
+        try:
+            cuda_per_process_memory_fraction = float(os.getenv("CUDA_PER_PROCESS_MEMORY_FRACTION"))
+        except ValueError:
+            logger.error(f"Invalid CUDA_PER_PROCESS_MEMORY_FRACTION (should be between 0.0-1.0)")
+    if 0.0 <= cuda_per_process_memory_fraction <= 1.0:
+        logger.info(f"CUDA_PER_PROCESS_MEMORY_FRACTION set to {cuda_per_process_memory_fraction}")
     cuda_support=False
     cuda_core=""
 
@@ -30,7 +38,7 @@ def startup_event():
         logger.info("Running on CPU")
 
     meta_config = Meta('./models/model')
-    vec = Vectorizer('./models/model', cuda_support, cuda_core,
+    vec = Vectorizer('./models/model', cuda_support, cuda_core, cuda_per_process_memory_fraction,
                      meta_config.getModelType(), meta_config.get_architecture())
 
 
