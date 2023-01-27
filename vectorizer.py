@@ -67,28 +67,30 @@ class Vectorizer:
 
     async def vectorize(self, text: str, config: VectorInputConfig):
         with torch.no_grad():
-            if not self.tokenize_text:
+            if self.tokenize_text:
+                # tokenize text
+                sentences = sent_tokenize(' '.join(text.split(),))
+                num_sentences = len(sentences)
+                number_of_batch_vectors = math.ceil(num_sentences / MAX_BATCH_SIZE)
+                batch_sum_vectors = 0
+                for i in range(0, number_of_batch_vectors):
+                    start_index = i * MAX_BATCH_SIZE
+                    end_index = start_index + MAX_BATCH_SIZE
+
+                    tokens = self.tokenize(sentences[start_index:end_index])
+                    if self.cuda:
+                        tokens.to(self.cuda_core)
+                    batch_results = self.get_batch_results(tokens, sentences[start_index:end_index])
+                    batch_sum_vectors += self.pool_embedding(batch_results, tokens, config)
+                return batch_sum_vectors.detach() / num_sentences
+            else:
+                # create embeddings without tokenizing text
                 tokens = self.tokenize(text)
                 if self.cuda:
                     tokens.to(self.cuda_core)
                 batch_results = self.get_batch_results(tokens, text)
                 batch_sum_vectors = self.pool_embedding(batch_results, tokens, config)
                 return batch_sum_vectors.detach()
-            # tokenize text
-            sentences = sent_tokenize(' '.join(text.split(),))
-            num_sentences = len(sentences)
-            number_of_batch_vectors = math.ceil(num_sentences / MAX_BATCH_SIZE)
-            batch_sum_vectors = 0
-            for i in range(0, number_of_batch_vectors):
-                start_index = i * MAX_BATCH_SIZE
-                end_index = start_index + MAX_BATCH_SIZE
-
-                tokens = self.tokenize(sentences[start_index:end_index])
-                if self.cuda:
-                    tokens.to(self.cuda_core)
-                batch_results = self.get_batch_results(tokens, sentences[start_index:end_index])
-                batch_sum_vectors += self.pool_embedding(batch_results, tokens, config)
-            return batch_sum_vectors.detach() / num_sentences
 
 
 class HFModel:
