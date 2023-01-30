@@ -67,7 +67,7 @@ class Vectorizer:
 
     async def vectorize(self, text: str, config: VectorInputConfig):
         with torch.no_grad():
-            if not self.direct_tokenize:
+            if self.direct_tokenize:
                 # create embeddings without tokenizing text
                 tokens = self.tokenize(text)
                 if self.cuda:
