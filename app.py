@@ -37,9 +37,15 @@ def startup_event():
     else:
         logger.info("Running on CPU")
 
+    # Batch text tokenization enabled by default
+    direct_tokenize = True
+    transformers_direct_tokenize = os.getenv("T2V_TRANSFORMERS_DIRECT_TOKENIZE")
+    if transformers_direct_tokenize is not None and transformers_direct_tokenize == "false" or transformers_direct_tokenize == "0":
+        direct_tokenize = False
+
     meta_config = Meta('./models/model')
     vec = Vectorizer('./models/model', cuda_support, cuda_core, cuda_per_process_memory_fraction,
-                     meta_config.getModelType(), meta_config.get_architecture())
+                     meta_config.getModelType(), meta_config.get_architecture(), direct_tokenize)
 
 
 @app.get("/.well-known/live", response_class=Response)
