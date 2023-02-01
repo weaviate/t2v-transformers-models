@@ -18,8 +18,8 @@ jobs:
     strategy:
       matrix:
         include:
-          - model_name: "distilbert-base-uncased"
-            model_tag_name: "distilbert-base-uncased"
+          - model_name: distilbert-base-uncased
+            model_tag_name: distilbert-base-uncased
           - model_name: sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2
             model_tag_name: sentence-transformers-paraphrase-multilingual-MiniLM-L12-v2
           - model_name: sentence-transformers/multi-qa-MiniLM-L6-cos-v1
@@ -46,6 +46,10 @@ jobs:
             model_tag_name: facebook-dpr-ctx_encoder-single-nq-base
           - model_name: facebook/dpr-question_encoder-single-nq-base
             model_tag_name: facebook-dpr-question_encoder-single-nq-base
+          - model_name: sentence-transformers/all-MiniLM-L6-v2
+            model_tag_name: sentence-transformers-all-MiniLM-L6-v2
+          - model_name: sentence-transformers/multi-qa-distilbert-cos-v1
+            model_tag_name: sentence-transformers-multi-qa-distilbert-cos-v1
     env:
       LOCAL_REPO: transformers-inference
       REMOTE_REPO: semitechnologies/transformers-inference
