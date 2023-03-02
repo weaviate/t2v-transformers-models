@@ -50,6 +50,10 @@ jobs:
             model_tag_name: sentence-transformers-all-MiniLM-L6-v2
           - model_name: sentence-transformers/multi-qa-distilbert-cos-v1
             model_tag_name: sentence-transformers-multi-qa-distilbert-cos-v1
+          - model_name: google/flan-t5-base
+            model_tag_name: google-flan-t5-base
+          - model_name: google/flan-t5-large
+            model_tag_name: google-flan-t5-large
     env:
       LOCAL_REPO: transformers-inference
       REMOTE_REPO: semitechnologies/transformers-inference
