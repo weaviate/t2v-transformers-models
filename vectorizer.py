@@ -41,7 +41,7 @@ class Vectorizer:
         self.model_type = model_type
         self.direct_tokenize = direct_tokenize
 
-        self.model_delegate: HFModel = ModelFactory.model(model_type, architecture)
+        self.model_delegate: HFModel = ModelFactory.model(model_type, architecture, cuda_support, cuda_core)
         self.model = self.model_delegate.create_model(model_path)
 
         if self.cuda:
@@ -95,10 +95,12 @@ class Vectorizer:
 
 class HFModel:
 
-    def __init__(self):
+    def __init__(self, cuda_support: bool, cuda_core: str):
         super().__init__()
         self.model = None
         self.tokenizer = None
+        self.cuda = cuda_support
+        self.cuda_core = cuda_core
 
     def create_tokenizer(self, model_path):
         self.tokenizer = AutoTokenizer.from_pretrained(model_path)
@@ -132,18 +134,27 @@ class HFModel:
 
         return config.pooling_strategy
 
+    def get_sum_embeddings_mask(self, embeddings, input_mask_expanded):
+        if self.cuda:
+            sum_embeddings = torch.sum(embeddings * input_mask_expanded, 1).to(self.cuda_core)
+            sum_mask = torch.clamp(input_mask_expanded.sum(1), min=1e-9).to(self.cuda_core)
+            return sum_embeddings, sum_mask
+        else:
+            sum_embeddings = torch.sum(embeddings * input_mask_expanded, 1)
+            sum_mask = torch.clamp(input_mask_expanded.sum(1), min=1e-9)
+            return sum_embeddings, sum_mask
+
     def pool_sum(self, embeddings, attention_mask):
         input_mask_expanded = attention_mask.unsqueeze(-1).expand(embeddings.size()).float()
-        sum_embeddings = torch.sum(embeddings * input_mask_expanded, 1)
-        sum_mask = torch.clamp(input_mask_expanded.sum(1), min=1e-9)
+        sum_embeddings, sum_mask = self.get_sum_embeddings_mask(embeddings, input_mask_expanded)
         sentences = sum_embeddings / sum_mask
         return sentences.sum(0)
 
 
 class DPRModel(HFModel):
 
-    def __init__(self, architecture: str):
-        super().__init__()
+    def __init__(self, architecture: str, cuda_support: bool, cuda_core: str):
+        super().__init__(cuda_support, cuda_core)
         self.model = None
         self.architecture = architecture
 
@@ -164,10 +175,12 @@ class DPRModel(HFModel):
 
 class T5Model(HFModel):
 
-    def __init__(self):
-        super().__init__()
+    def __init__(self, cuda_support: bool, cuda_core: str):
+        super().__init__(cuda_support, cuda_core)
         self.model = None
         self.tokenizer = None
+        self.cuda = cuda_support
+        self.cuda_core = cuda_core
 
     def create_model(self, model_path):
         self.model = T5ForConditionalGeneration.from_pretrained(model_path)
@@ -187,7 +200,10 @@ class T5Model(HFModel):
             text, padding="longest", max_length=500, truncation=True
         )
         labels = target_encoding.input_ids
-        labels = torch.tensor(labels)
+        if self.cuda:
+            labels = torch.tensor(labels).to(self.cuda_core)
+        else:
+            labels = torch.tensor(labels)
 
         return self.model(input_ids=input_ids, attention_mask=attention_mask, labels=labels)
 
@@ -195,10 +211,10 @@ class T5Model(HFModel):
 class ModelFactory:
 
     @staticmethod
-    def model(model_type, architecture):
+    def model(model_type, architecture, cuda_support: bool, cuda_core: str):
         if model_type == 't5':
-            return T5Model()
+            return T5Model(cuda_support, cuda_core)
         elif model_type == 'dpr':
-            return DPRModel(architecture)
+            return DPRModel(architecture, cuda_support, cuda_core)
         else:
-            return HFModel()
+            return HFModel(cuda_support, cuda_core)
