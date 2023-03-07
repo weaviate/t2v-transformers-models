@@ -32,6 +32,10 @@ jobs:
             model_tag_name: sentence-transformers-all-MiniLM-L12-v2
           - model_name: sentence-transformers/paraphrase-multilingual-mpnet-base-v2
             model_tag_name: sentence-transformers-paraphrase-multilingual-mpnet-base-v2
+          - model_name: sentence-transformers/all-MiniLM-L6-v2
+            model_tag_name: sentence-transformers-all-MiniLM-L6-v2
+          - model_name: sentence-transformers/multi-qa-distilbert-cos-v1
+            model_tag_name: sentence-transformers-multi-qa-distilbert-cos-v1
           - model_name: sentence-transformers/gtr-t5-base
             model_tag_name: sentence-transformers-gtr-t5-base
           - model_name: sentence-transformers/gtr-t5-large
@@ -46,10 +50,6 @@ jobs:
             model_tag_name: facebook-dpr-ctx_encoder-single-nq-base
           - model_name: facebook/dpr-question_encoder-single-nq-base
             model_tag_name: facebook-dpr-question_encoder-single-nq-base
-          - model_name: sentence-transformers/all-MiniLM-L6-v2
-            model_tag_name: sentence-transformers-all-MiniLM-L6-v2
-          - model_name: sentence-transformers/multi-qa-distilbert-cos-v1
-            model_tag_name: sentence-transformers-multi-qa-distilbert-cos-v1
           - model_name: google/flan-t5-base
             model_tag_name: google-flan-t5-base
           - model_name: google/flan-t5-large
