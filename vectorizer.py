@@ -1,3 +1,5 @@
+import asyncio
+from concurrent.futures import ThreadPoolExecutor
 import math
 from typing import Optional
 import torch
@@ -33,6 +35,7 @@ class Vectorizer:
     cuda_core: str
     model_type: str
     direct_tokenize: bool
+    executor: ThreadPoolExecutor
 
     def __init__(self, model_path: str, cuda_support: bool, cuda_core: str, cuda_per_process_memory_fraction: float, model_type: str, architecture: str, direct_tokenize: bool):
         self.cuda = cuda_support
@@ -52,8 +55,10 @@ class Vectorizer:
 
         self.tokenizer = self.model_delegate.create_tokenizer(model_path)
 
+        self.executor = ThreadPoolExecutor()
+
     def tokenize(self, text:str):
-        return self.tokenizer(text, padding=True, truncation=True, max_length=500, 
+        return self.tokenizer(text, padding=True, truncation=True, max_length=500,
                 add_special_tokens = True, return_tensors="pt")
 
     def get_embeddings(self, batch_results):
@@ -65,7 +70,7 @@ class Vectorizer:
     def pool_embedding(self, batch_results, tokens, config):
         return self.model_delegate.pool_embedding(batch_results, tokens, config)
 
-    async def vectorize(self, text: str, config: VectorInputConfig):
+    def _vectorize(self, text: str, config: VectorInputConfig):
         with torch.no_grad():
             if self.direct_tokenize:
                 # create embeddings without tokenizing text
@@ -91,6 +96,9 @@ class Vectorizer:
                     batch_results = self.get_batch_results(tokens, sentences[start_index:end_index])
                     batch_sum_vectors += self.pool_embedding(batch_results, tokens, config)
                 return batch_sum_vectors.detach() / num_sentences
+
+    async def vectorize(self, text: str, config: VectorInputConfig):
+        return await asyncio.wrap_future(self.executor.submit(self._vectorize, text, config))
 
 
 class HFModel:
