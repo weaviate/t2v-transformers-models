@@ -55,7 +55,7 @@ class Vectorizer:
 
         self.tokenizer = self.model_delegate.create_tokenizer(model_path)
 
-        self.executor = ThreadPoolExecutor(max_workers=1)
+        self.executor = ThreadPoolExecutor()
 
     def tokenize(self, text:str):
         return self.tokenizer(text, padding=True, truncation=True, max_length=500,
