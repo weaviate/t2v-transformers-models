@@ -3,6 +3,7 @@ from concurrent.futures import ThreadPoolExecutor
 import math
 from typing import Optional
 import torch
+import nltk
 from nltk.tokenize import sent_tokenize
 from pydantic import BaseModel
 from transformers import (
@@ -56,6 +57,8 @@ class Vectorizer:
         self.tokenizer = self.model_delegate.create_tokenizer(model_path)
 
         self.executor = ThreadPoolExecutor()
+
+        nltk.data.path.append('./nltk_data')
 
     def tokenize(self, text:str):
         return self.tokenizer(text, padding=True, truncation=True, max_length=500,

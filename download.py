@@ -39,4 +39,4 @@ tokenizer = AutoTokenizer.from_pretrained(model_name)
 model.save_pretrained('./models/model')
 tokenizer.save_pretrained('./models/model')
 
-nltk.download('punkt')
+nltk.download('punkt', download_dir='./nltk_data')
