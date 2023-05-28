@@ -54,6 +54,10 @@ jobs:
             model_tag_name: google-flan-t5-base
           - model_name: google/flan-t5-large
             model_tag_name: google-flan-t5-large
+          - model_name: biu-nlp/abstract-sim-sentence
+            model_tag_name: biu-nlp-abstract-sim-sentence
+          - model_name: biu-nlp/abstract-sim-query
+            model_tag_name: biu-nlp-abstract-sim-query
     env:
       LOCAL_REPO: transformers-inference
       REMOTE_REPO: semitechnologies/transformers-inference
