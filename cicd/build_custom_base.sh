@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-set -e
+set -eou pipefail
 
 function build() {
   docker build -f custom.Dockerfile -t "custom-base" .

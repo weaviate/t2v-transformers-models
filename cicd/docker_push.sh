@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-set -e pipefail
+set -eou pipefail
 
 # Docker push rules
 # If not on main

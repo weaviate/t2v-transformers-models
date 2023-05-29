@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-set -e
+set -eou pipefail
 
 local_repo=${LOCAL_REPO?Variable LOCAL_REPO is required}
 
