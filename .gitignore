@@ -1,3 +1,5 @@
 __pycache__
 models
 nltk_data
+.venv/
+.vscode/

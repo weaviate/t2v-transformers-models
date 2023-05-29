@@ -1,6 +1,6 @@
-transformers==4.27.2
-fastapi==0.95.0
-uvicorn==0.21.1
+transformers==4.29.2
+fastapi==0.95.2
+uvicorn==0.22.0
 nltk==3.8.1
-torch==2.0.0
-sentencepiece==0.1.97
+torch==2.0.1
+sentencepiece==0.1.99
