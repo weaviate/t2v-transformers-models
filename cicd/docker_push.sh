@@ -8,21 +8,18 @@ set -eou pipefail
 # - any commit is pushed as :<model>-latest
 # - any commit is pushed as :<model>
 git_hash=
-pr=
 remote_repo=${REMOTE_REPO?Variable REMOTE_REPO is required}
 model_name=${MODEL_NAME?Variable MODEL_NAME is required}
-original_model_name=$model_name
 docker_username=${DOCKER_USERNAME?Variable DOCKER_USERNAME is required}
 docker_password=${DOCKER_PASSWORD?Variable DOCKER_PASSWORD is required}
-git_tag=${GITHUB_REF##*/}
+original_model_name=$model_name
+git_tag=$GITHUB_REF_NAME
 
 function main() {
   init
   echo "git ref type is $GITHUB_REF_TYPE"
   echo "git ref name is $GITHUB_REF_NAME"
-  echo "git branch is $GIT_BRANCH"
   echo "git tag is $git_tag"
-  echo "pr is $pr"
   push_tag
 }
 
@@ -35,10 +32,6 @@ function init() {
   fi
 
   git_hash="$(git rev-parse HEAD | head -c 7)"
-  pr=false
-  if [ ! -z "$GIT_PULL_REQUEST" ]; then
-    pr="$GIT_PULL_REQUEST"
-  fi
 
   docker run --rm --privileged multiarch/qemu-user-static --reset -p yes
   docker buildx create --use
@@ -46,7 +39,7 @@ function init() {
 }
 
 function push_tag() {
-  if [ ! -z "$git_tag" ]; then
+  if [ ! -z "$git_tag" ] && [ "$GITHUB_REF_TYPE" == "tag" ]; then
     tag_git="$remote_repo:$model_name-$git_tag"
     tag_latest="$remote_repo:$model_name-latest"
     tag="$remote_repo:$model_name"

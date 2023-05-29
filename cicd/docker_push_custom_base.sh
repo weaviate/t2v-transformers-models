@@ -6,7 +6,7 @@ git_hash=
 remote_repo=${REMOTE_REPO?Variable REMOTE_REPO is required}
 docker_username=${DOCKER_USERNAME?Variable DOCKER_USERNAME is required}
 docker_password=${DOCKER_PASSWORD?Variable DOCKER_PASSWORD is required}
-git_tag=${GITHUB_REF##*/}
+git_tag=$GITHUB_REF_NAME
 
 function main() {
   init
