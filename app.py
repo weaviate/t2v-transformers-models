@@ -1,9 +1,8 @@
-import os
 from logging import getLogger
 from fastapi import FastAPI, Response, status
 from vectorizer import Vectorizer, VectorInput
 from meta import Meta
-
+from config import T2VConfig
 
 app = FastAPI()
 vec: Vectorizer
@@ -16,45 +15,18 @@ def startup_event():
     global vec
     global meta_config
 
-    cuda_env = os.getenv("ENABLE_CUDA")
-    cuda_per_process_memory_fraction = 1.0
-    if "CUDA_PER_PROCESS_MEMORY_FRACTION" in os.environ:
-        try:
-            cuda_per_process_memory_fraction = float(
-                os.getenv("CUDA_PER_PROCESS_MEMORY_FRACTION")
-            )
-        except ValueError:
-            logger.error(
-                f"Invalid CUDA_PER_PROCESS_MEMORY_FRACTION (should be between 0.0-1.0)"
-            )
-    if 0.0 <= cuda_per_process_memory_fraction <= 1.0:
-        logger.info(
-            f"CUDA_PER_PROCESS_MEMORY_FRACTION set to {cuda_per_process_memory_fraction}"
-        )
-    cuda_support = False
-    cuda_core = ""
+    config = T2VConfig.from_env()
 
-    if cuda_env is not None and cuda_env == "true" or cuda_env == "1":
-        cuda_support = True
-        cuda_core = os.getenv("CUDA_CORE")
-        if cuda_core is None or cuda_core == "":
-            cuda_core = "cuda:0"
-        logger.info(f"CUDA_CORE set to {cuda_core}")
+    if config.cuda_config.enable_cuda:
+        logger.info("Running on CUDA")
+        logger.info(f"CUDA_CORE set to {config.cuda_config.cuda_core}")
+        logger.info(
+            f"CUDA_PER_PROCESS_MEMORY_FRACTION set to {config.cuda_configcuda_per_process_memory_fraction}"
+        )
     else:
         logger.info("Running on CPU")
 
-    # Split input in sentences by default
-    # And perform tokenization in batches
-    shall_split_in_sentences = True
-    env_shall_split_in_sentences = os.getenv("T2V_SHALL_SPLIT_IN_SENTENCES")
-    if (
-        env_shall_split_in_sentences is not None
-        and env_shall_split_in_sentences == "false"
-        or env_shall_split_in_sentences == "0"
-    ):
-        shall_split_in_sentences = False
-
-    if not shall_split_in_sentences:
+    if not config.shall_split_in_sentences:
         logger.warn(
             f"Configured not to split input into sentences. Inputs will be truncated if they exceed the models context length."
         )
@@ -62,12 +34,12 @@ def startup_event():
     meta_config = Meta("./models/model")
     vec = Vectorizer(
         "./models/model",
-        cuda_support,
-        cuda_core,
-        cuda_per_process_memory_fraction,
+        config.cuda_config.enable_cuda,
+        config.cuda_config.cuda_core,
+        config.cuda_config.cuda_per_process_memory_fraction,
         meta_config.getModelType(),
         meta_config.get_architecture(),
-        shall_split_in_sentences,
+        config.shall_split_in_sentences,
     )
 
 
