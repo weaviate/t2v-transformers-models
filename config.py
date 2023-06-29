@@ -41,14 +41,16 @@ class T2VConfig:
                     "Invalid CUDA_PER_PROCESS_MEMORY_FRACTION (should be between 0.0-1.0)"
                 )
 
-        shall_split_in_sentences = os.getenv("T2V_SHALL_SPLIT_IN_SENTENCES") in [
+        shall_split_in_sentences = os.getenv(
+            "T2V_SHALL_SPLIT_IN_SENTENCES", "true"
+        ) in [
             "true",
             "1",
         ]
 
         direct_tokenize = os.getenv("T2V_DIRECT_TOKENIZE") in ["true", "1"]
         if direct_tokenize:
-            shall_split_in_sentences = not direct_tokenize
+            shall_split_in_sentences = False
             warnings.warn(
                 "T2V_DIRECT_TOKENIZE will be deprecated in favour of T2V_SHALL_SPLIT_IN_SENTENCES",
                 DeprecationWarning,
