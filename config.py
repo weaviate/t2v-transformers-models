@@ -48,11 +48,11 @@ class T2VConfig:
             "1",
         ]
 
-        direct_tokenize = os.getenv("T2V_DIRECT_TOKENIZE") in ["true", "1"]
+        direct_tokenize = os.getenv("T2V_TRANSFORMERS_DIRECT_TOKENIZE") in ["true", "1"]
         if direct_tokenize:
             shall_split_in_sentences = False
             warnings.warn(
-                "T2V_DIRECT_TOKENIZE will be deprecated in favour of T2V_SHALL_SPLIT_IN_SENTENCES",
+                "T2V_TRANSFORMERS_DIRECT_TOKENIZE will be deprecated in favour of T2V_SHALL_SPLIT_IN_SENTENCES",
                 DeprecationWarning,
             )
 
