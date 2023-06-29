@@ -21,7 +21,7 @@ def startup_event():
         logger.info("Running on CUDA")
         logger.info(f"CUDA_CORE set to {config.cuda_config.cuda_core}")
         logger.info(
-            f"CUDA_PER_PROCESS_MEMORY_FRACTION set to {config.cuda_configcuda_per_process_memory_fraction}"
+            f"CUDA_PER_PROCESS_MEMORY_FRACTION set to {config.cuda_config.cuda_per_process_memory_fraction}"
         )
     else:
         logger.info("Running on CPU")
