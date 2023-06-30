@@ -1,5 +1,4 @@
 import os
-import warnings
 from dataclasses import dataclass
 from typing import Optional
 
@@ -41,20 +40,10 @@ class T2VConfig:
                     "Invalid CUDA_PER_PROCESS_MEMORY_FRACTION (should be between 0.0-1.0)"
                 )
 
+        # Split in sentences as long as T2V_TRANSFORMERS_DIRECT_TOKENIZE is not set to true or 1
         shall_split_in_sentences = os.getenv(
-            "T2V_SHALL_SPLIT_IN_SENTENCES", "true"
-        ) in [
-            "true",
-            "1",
-        ]
-
-        direct_tokenize = os.getenv("T2V_TRANSFORMERS_DIRECT_TOKENIZE") in ["true", "1"]
-        if direct_tokenize:
-            shall_split_in_sentences = False
-            warnings.warn(
-                "T2V_TRANSFORMERS_DIRECT_TOKENIZE will be deprecated in favour of T2V_SHALL_SPLIT_IN_SENTENCES",
-                DeprecationWarning,
-            )
+            "T2V_TRANSFORMERS_DIRECT_TOKENIZE", "false"
+        ) not in ["true", "1"]
 
         return cls(
             cuda_config=cuda_config,
