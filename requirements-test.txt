@@ -5,4 +5,5 @@ uvicorn==0.21.1
 nltk==3.8.1
 torch==2.0.0
 sentencepiece==0.1.97
+sentence-transformers==2.2.2
 pytest
