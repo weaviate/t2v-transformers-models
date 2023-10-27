@@ -50,6 +50,7 @@ class SmokeTest(unittest.TestCase):
             # aware of 384 and 768 dim vectors, which should both fall in that
             # range
             self.assertTrue(len(resBody['vector']) > 100)
+            print(f"vector dimensions are: {len(resBody['vector'])}")
 
         try_to_vectorize(self.url + "/vectors/")
         try_to_vectorize(self.url + "/vectors")

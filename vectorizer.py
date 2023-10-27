@@ -14,6 +14,7 @@ from transformers import (
     DPRContextEncoder,
     DPRQuestionEncoder,
 )
+from sentence_transformers import SentenceTransformer
 
 
 # limit transformer batch size to limit parallel inference, otherwise we run
@@ -29,14 +30,47 @@ class VectorInput(BaseModel):
     text: str
     config: Optional[VectorInputConfig] = None
 
+
 class Vectorizer:
+    executor: ThreadPoolExecutor
+
+    def __init__(self, model_path: str, cuda_support: bool, cuda_core: str, cuda_per_process_memory_fraction: float, model_type: str, architecture: str, direct_tokenize: bool):
+        self.executor = ThreadPoolExecutor()
+        if model_type == 't5':
+            self.vectorizer = SentenceTransformerVectorizer(model_path, cuda_core)
+        else:
+            self.vectorizer = HuggingFaceVectorizer(model_path, cuda_support, cuda_core, cuda_per_process_memory_fraction, model_type, architecture, direct_tokenize)
+
+    async def vectorize(self, text: str, config: VectorInputConfig):
+        return await asyncio.wrap_future(self.executor.submit(self.vectorizer.vectorize, text, config))
+
+
+class SentenceTransformerVectorizer:
+    model: SentenceTransformer
+    cuda_core: str
+
+    def __init__(self, model_path: str, cuda_core: str):
+        self.cuda_core = cuda_core
+        self.model = SentenceTransformer(model_path, device=self.get_device())
+        self.model.eval() # make sure we're in inference mode, not training
+
+    def get_device(self) -> Optional[str]:
+        if self.cuda_core is not None and self.cuda_core != "":
+            return self.cuda_core
+        return None
+
+    def vectorize(self, text: str, config: VectorInputConfig):
+        embedding = self.model.encode([text], device=self.get_device(), convert_to_tensor=False, convert_to_numpy=True)
+        return embedding[0]
+
+
+class HuggingFaceVectorizer:
     model: AutoModel
     tokenizer: AutoTokenizer
     cuda: bool
     cuda_core: str
     model_type: str
     direct_tokenize: bool
-    executor: ThreadPoolExecutor
 
     def __init__(self, model_path: str, cuda_support: bool, cuda_core: str, cuda_per_process_memory_fraction: float, model_type: str, architecture: str, direct_tokenize: bool):
         self.cuda = cuda_support
@@ -56,8 +90,6 @@ class Vectorizer:
 
         self.tokenizer = self.model_delegate.create_tokenizer(model_path)
 
-        self.executor = ThreadPoolExecutor()
-
         nltk.data.path.append('./nltk_data')
 
     def tokenize(self, text:str):
@@ -73,7 +105,7 @@ class Vectorizer:
     def pool_embedding(self, batch_results, tokens, config):
         return self.model_delegate.pool_embedding(batch_results, tokens, config)
 
-    def _vectorize(self, text: str, config: VectorInputConfig):
+    def vectorize(self, text: str, config: VectorInputConfig):
         with torch.no_grad():
             if self.direct_tokenize:
                 # create embeddings without tokenizing text
@@ -99,9 +131,6 @@ class Vectorizer:
                     batch_results = self.get_batch_results(tokens, sentences[start_index:end_index])
                     batch_sum_vectors += self.pool_embedding(batch_results, tokens, config)
                 return batch_sum_vectors.detach() / num_sentences
-
-    async def vectorize(self, text: str, config: VectorInputConfig):
-        return await asyncio.wrap_future(self.executor.submit(self._vectorize, text, config))
 
 
 class HFModel:

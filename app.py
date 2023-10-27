@@ -43,8 +43,15 @@ def startup_event():
     if transformers_direct_tokenize is not None and transformers_direct_tokenize == "true" or transformers_direct_tokenize == "1":
         direct_tokenize = True
 
-    meta_config = Meta('./models/model')
-    vec = Vectorizer('./models/model', cuda_support, cuda_core, cuda_per_process_memory_fraction,
+    def get_model_directory() -> str:
+        if os.path.exists("./models/model/model_name"):
+            with open("./models/model/model_name", "r") as f:
+                model_name = f.read()
+                return f"./models/model/{model_name}"
+        return "./models/model"
+
+    meta_config = Meta(get_model_directory())
+    vec = Vectorizer(get_model_directory(), cuda_support, cuda_core, cuda_per_process_memory_fraction,
                      meta_config.getModelType(), meta_config.get_architecture(), direct_tokenize)
 
 
