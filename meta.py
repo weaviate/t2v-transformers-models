@@ -12,7 +12,7 @@ class Meta:
             'model': self.config.to_dict()
         }
 
-    def getModelType(self):
+    def get_model_type(self):
         return self.config.to_dict()['model_type']
 
     def get_architecture(self):

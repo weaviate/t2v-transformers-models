@@ -6,4 +6,7 @@ nltk==3.8.1
 torch==2.0.1
 sentencepiece==0.1.97
 sentence-transformers==2.2.2
+optimum==1.13.2
+onnxruntime==1.16.1
+onnx==1.14.1
 pytest

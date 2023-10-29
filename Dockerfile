@@ -1,4 +1,4 @@
-FROM python:3.10-slim
+FROM python:3.11-slim
 
 WORKDIR /app
 
@@ -8,7 +8,10 @@ RUN pip install --upgrade pip setuptools
 COPY requirements.txt .
 RUN pip3 install -r requirements.txt
 
+ARG TARGETARCH
 ARG MODEL_NAME
+ARG ONNX_RUNTIME
+ENV ONNX_CPU=${TARGETARCH}
 COPY download.py .
 RUN ./download.py
 

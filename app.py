@@ -43,16 +43,25 @@ def startup_event():
     if transformers_direct_tokenize is not None and transformers_direct_tokenize == "true" or transformers_direct_tokenize == "1":
         direct_tokenize = True
 
+    model_dir = "./models/model"
     def get_model_directory() -> str:
-        if os.path.exists("./models/model/model_name"):
-            with open("./models/model/model_name", "r") as f:
+        if os.path.exists(f"{model_dir}/model_name"):
+            with open(f"{model_dir}/model_name", "r") as f:
                 model_name = f.read()
-                return f"./models/model/{model_name}"
-        return "./models/model"
+                return f"{model_dir}/{model_name}"
+        return model_dir
+
+    def get_onnx_runtime() -> bool:
+        if os.path.exists(f"{model_dir}/onnx_runtime"):
+            with open(f"{model_dir}/onnx_runtime", "r") as f:
+                onnx_runtime = f.read()
+                return onnx_runtime == "true"
+        return False
 
     meta_config = Meta(get_model_directory())
     vec = Vectorizer(get_model_directory(), cuda_support, cuda_core, cuda_per_process_memory_fraction,
-                     meta_config.getModelType(), meta_config.get_architecture(), direct_tokenize)
+                     meta_config.get_model_type(), meta_config.get_architecture(), 
+                     direct_tokenize, get_onnx_runtime())
 
 
 @app.get("/.well-known/live", response_class=Response)

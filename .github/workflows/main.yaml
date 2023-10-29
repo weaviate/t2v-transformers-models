@@ -20,54 +20,90 @@ jobs:
         include:
           - model_name: distilbert-base-uncased
             model_tag_name: distilbert-base-uncased
+            onnx_runtime: false
           - model_name: sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2
             model_tag_name: sentence-transformers-paraphrase-multilingual-MiniLM-L12-v2
+            onnx_runtime: false
           - model_name: sentence-transformers/multi-qa-MiniLM-L6-cos-v1
             model_tag_name: sentence-transformers-multi-qa-MiniLM-L6-cos-v1
+            onnx_runtime: false
           - model_name: sentence-transformers/multi-qa-mpnet-base-cos-v1
             model_tag_name: sentence-transformers-multi-qa-mpnet-base-cos-v1
+            onnx_runtime: false
           - model_name: sentence-transformers/all-mpnet-base-v2
             model_tag_name: sentence-transformers-all-mpnet-base-v2
+            onnx_runtime: false
           - model_name: sentence-transformers/all-MiniLM-L12-v2
             model_tag_name: sentence-transformers-all-MiniLM-L12-v2
+            onnx_runtime: false
           - model_name: sentence-transformers/paraphrase-multilingual-mpnet-base-v2
             model_tag_name: sentence-transformers-paraphrase-multilingual-mpnet-base-v2
+            onnx_runtime: false
           - model_name: sentence-transformers/all-MiniLM-L6-v2
             model_tag_name: sentence-transformers-all-MiniLM-L6-v2
+            onnx_runtime: false
           - model_name: sentence-transformers/multi-qa-distilbert-cos-v1
             model_tag_name: sentence-transformers-multi-qa-distilbert-cos-v1
+            onnx_runtime: false
           - model_name: sentence-transformers/gtr-t5-base
             model_tag_name: sentence-transformers-gtr-t5-base
+            onnx_runtime: false
           - model_name: sentence-transformers/gtr-t5-large
             model_tag_name: sentence-transformers-gtr-t5-large
+            onnx_runtime: false
           - model_name: sentence-transformers/sentence-t5-base
             model_tag_name: sentence-transformers-sentence-t5-base
+            onnx_runtime: false
           - model_name: vblagoje/dpr-ctx_encoder-single-lfqa-wiki
             model_tag_name: vblagoje-dpr-ctx_encoder-single-lfqa-wiki
+            onnx_runtime: false
           - model_name: vblagoje/dpr-question_encoder-single-lfqa-wiki
             model_tag_name: vblagoje-dpr-question_encoder-single-lfqa-wiki
+            onnx_runtime: false
           - model_name: facebook/dpr-ctx_encoder-single-nq-base
             model_tag_name: facebook-dpr-ctx_encoder-single-nq-base
+            onnx_runtime: false
           - model_name: facebook/dpr-question_encoder-single-nq-base
             model_tag_name: facebook-dpr-question_encoder-single-nq-base
+            onnx_runtime: false
           - model_name: google/flan-t5-base
             model_tag_name: google-flan-t5-base
+            onnx_runtime: false
           - model_name: google/flan-t5-large
             model_tag_name: google-flan-t5-large
+            onnx_runtime: false
           - model_name: biu-nlp/abstract-sim-sentence
             model_tag_name: biu-nlp-abstract-sim-sentence
+            onnx_runtime: false
           - model_name: biu-nlp/abstract-sim-query
             model_tag_name: biu-nlp-abstract-sim-query
+            onnx_runtime: false
+          - model_name: BAAI/bge-small-en
+            model_tag_name: baai-bge-small-en
+            onnx_runtime: true
+          - model_name: BAAI/bge-small-en-v1.5
+            model_tag_name: baai-bge-small-en-v1.5
+            onnx_runtime: true
+          - model_name: BAAI/bge-base-en
+            model_tag_name: baai-bge-base-en
+            onnx_runtime: true
+          - model_name: BAAI/bge-base-en-v1.5
+            model_tag_name: baai-bge-base-en-v1.5
+            onnx_runtime: true
+          - model_name: sentence-transformers/all-MiniLM-L6-v2
+            model_tag_name: sentence-transformers-all-MiniLM-L6-v2
+            onnx_runtime: true
     env:
       LOCAL_REPO: transformers-inference
       REMOTE_REPO: semitechnologies/transformers-inference
       MODEL_NAME: ${{matrix.model_name}}
       MODEL_TAG_NAME: ${{matrix.model_tag_name}}
+      ONNX_RUNTIME: ${{matrix.onnx_runtime}}
     steps:
       - uses: actions/checkout@v3
       - uses: actions/setup-python@v4
         with:
-          python-version: "3.10"
+          python-version: "3.11"
           cache: 'pip' # caching pip dependencies
       - name: Login to Docker Hub
         if: ${{ !github.event.pull_request.head.repo.fork }}  # no PRs from fork
@@ -96,7 +132,7 @@ jobs:
       - uses: actions/checkout@v3
       - uses: actions/setup-python@v4
         with:
-          python-version: "3.10"
+          python-version: "3.11"
       - name: Login to Docker Hub
         if: ${{ !github.event.pull_request.head.repo.fork }}  # no PRs from fork
         uses: docker/login-action@v2
