@@ -1,0 +1,46 @@
+name: QuickCode build
+
+on:
+  push:
+    branches:
+      - main
+    tags:
+      - '**'
+    paths-ignore:
+      - README.md
+      - LICENSE
+  workflow_dispatch:
+
+env:
+  AWS_ACCESS_KEY_ID: ${{ secrets.QUICKCODE_DEPLOY__AWS_ACCESS_KEY_ID }}
+  AWS_SECRET_ACCESS_KEY: ${{ secrets.QUICKCODE_DEPLOY__AWS_SECRET_ACCESS_KEY }}
+  AWS_DEFAULT_REGION: us-east-1
+  ECR_REPO: 130246083608.dkr.ecr.us-east-1.amazonaws.com
+
+jobs:
+  build-image:
+    name: Build custom image
+    runs-on: self-hosted
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4.1.1
+
+      - uses: quipper/setup-aws-cli-action@main
+
+      - name: Configure kubectl to use our EKS
+        run: aws eks update-kubeconfig --name quickcode --alias aws/quickcode
+
+      - name: Login to ECR
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.ECR_REPO }}
+          username: ${{ env.AWS_ACCESS_KEY_ID }}
+          password: ${{ env.AWS_SECRET_ACCESS_KEY }}
+
+      - name: Build custom image
+        run: |
+          cicd/build_custom_base.sh
+
+      - name: push
+        run: |
+          docker push ${{ env.ECR_REPO }}/t2v-transformers-models:custom
