@@ -51,8 +51,9 @@ def startup_event():
         return "./models/model"
 
     meta_config = Meta(get_model_directory())
+    model_type = os.getenv("T2V_MODEL_TYPE", meta_config.getModelType())
     vec = Vectorizer(get_model_directory(), cuda_support, cuda_core, cuda_per_process_memory_fraction,
-                     meta_config.getModelType(), meta_config.get_architecture(), direct_tokenize)
+                     model_type, meta_config.get_architecture(), direct_tokenize)
 
 
 @app.get("/.well-known/live", response_class=Response)
