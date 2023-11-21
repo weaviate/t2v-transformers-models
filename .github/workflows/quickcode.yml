@@ -43,4 +43,4 @@ jobs:
 
       - name: push
         run: |
-          docker push ${{ env.ECR_REPO }}/quickcodehs/t2v-transformers-models:custom
+          docker push ${{ env.ECR_REPO }}/t2v-transformers-models:custom
