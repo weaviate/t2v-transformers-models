@@ -78,14 +78,14 @@ jobs:
           - model_name: biu-nlp/abstract-sim-query
             model_tag_name: biu-nlp-abstract-sim-query
             onnx_runtime: false
-          - model_name: BAAI/bge-small-en
-            model_tag_name: baai-bge-small-en
-            onnx_runtime: true
           - model_name: BAAI/bge-small-en-v1.5
             model_tag_name: baai-bge-small-en-v1.5
-            onnx_runtime: true
-          - model_name: BAAI/bge-base-en
-            model_tag_name: baai-bge-base-en
+            onnx_runtime: false
+          - model_name: BAAI/bge-base-en-v1.5
+            model_tag_name: baai-bge-base-en-v1.5
+            onnx_runtime: false
+          - model_name: BAAI/bge-small-en-v1.5
+            model_tag_name: baai-bge-small-en-v1.5
             onnx_runtime: true
           - model_name: BAAI/bge-base-en-v1.5
             model_tag_name: baai-bge-base-en-v1.5
