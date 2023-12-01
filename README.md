@@ -47,6 +47,12 @@ The pre-built models include:
 |Bar-Ilan University NLP Lab Models|
 |`biu-nlp/abstract-sim-sentence` ([Info](https://huggingface.co/biu-nlp/abstract-sim-sentence))|`semitechnologies/transformers-inference:biu-nlp-abstract-sim-sentence`|
 |`biu-nlp/abstract-sim-query` ([Info](https://huggingface.co/biu-nlp/abstract-sim-query))|`semitechnologies/transformers-inference:biu-nlp-abstract-sim-query`|
+|ONNX Models|
+|`BAAI/bge-small-en` ([Info](https://huggingface.co/BAAI/bge-small-en))|`semitechnologies/transformers-inference:baai-bge-small-en-onnx`|
+|`BAAI/bge-small-en-v1.5` ([Info](https://huggingface.co/BAAI/bge-small-en-v1.5))|`semitechnologies/transformers-inference:baai-bge-small-en-v1.5-onnx`|
+|`BAAI/bge-base-en` ([Info](https://huggingface.co/BAAI/bge-base-en))|`semitechnologies/transformers-inference:baai-bge-base-en-onnx`|
+|`BAAI/bge-base-en-v1.5` ([Info](https://huggingface.co/BAAI/bge-base-en-v1.5))|`semitechnologies/transformers-inference:baai-bge-base-en-v1.5-onnx`|
+|`sentence-transformers/all-MiniLM-L6-v2` ([Info](https://huggingface.co/sentence-transformers/all-MiniLM-L6-v2))|`semitechnologies/transformers-inference:sentence-transformers-all-MiniLM-L6-v2-onnx`|
 
 
 The above image names always point to the latest version of the inference

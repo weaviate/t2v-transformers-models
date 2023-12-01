@@ -3,6 +3,8 @@ from concurrent.futures import ThreadPoolExecutor
 import math
 from typing import Optional
 import torch
+import torch.nn.functional as F
+from pathlib import Path
 import nltk
 from nltk.tokenize import sent_tokenize
 from pydantic import BaseModel
@@ -15,6 +17,7 @@ from transformers import (
     DPRQuestionEncoder,
 )
 from sentence_transformers import SentenceTransformer
+from optimum.onnxruntime import ORTModelForFeatureExtraction
 
 
 # limit transformer batch size to limit parallel inference, otherwise we run
@@ -34,12 +37,15 @@ class VectorInput(BaseModel):
 class Vectorizer:
     executor: ThreadPoolExecutor
 
-    def __init__(self, model_path: str, cuda_support: bool, cuda_core: str, cuda_per_process_memory_fraction: float, model_type: str, architecture: str, direct_tokenize: bool):
+    def __init__(self, model_path: str, cuda_support: bool, cuda_core: str, cuda_per_process_memory_fraction: float, model_type: str, architecture: str, direct_tokenize: bool, onnx_runtime: bool):
         self.executor = ThreadPoolExecutor()
-        if model_type == 't5':
-            self.vectorizer = SentenceTransformerVectorizer(model_path, cuda_core)
+        if onnx_runtime:
+            self.vectorizer = ONNXVectorizer(model_path)
         else:
-            self.vectorizer = HuggingFaceVectorizer(model_path, cuda_support, cuda_core, cuda_per_process_memory_fraction, model_type, architecture, direct_tokenize)
+            if model_type == 't5':
+                self.vectorizer = SentenceTransformerVectorizer(model_path, cuda_core)
+            else:
+                self.vectorizer = HuggingFaceVectorizer(model_path, cuda_support, cuda_core, cuda_per_process_memory_fraction, model_type, architecture, direct_tokenize)
 
     async def vectorize(self, text: str, config: VectorInputConfig):
         return await asyncio.wrap_future(self.executor.submit(self.vectorizer.vectorize, text, config))
@@ -62,6 +68,34 @@ class SentenceTransformerVectorizer:
     def vectorize(self, text: str, config: VectorInputConfig):
         embedding = self.model.encode([text], device=self.get_device(), convert_to_tensor=False, convert_to_numpy=True)
         return embedding[0]
+
+
+class ONNXVectorizer:
+    model: ORTModelForFeatureExtraction
+    tokenizer: AutoTokenizer
+
+    def __init__(self, model_path) -> None:
+        onnx_path = Path(model_path)
+        self.model = ORTModelForFeatureExtraction.from_pretrained(onnx_path, file_name="model_quantized.onnx")
+        self.tokenizer = AutoTokenizer.from_pretrained(onnx_path)
+
+    def mean_pooling(self, model_output, attention_mask):
+        token_embeddings = model_output[0] #First element of model_output contains all token embeddings
+        input_mask_expanded = attention_mask.unsqueeze(-1).expand(token_embeddings.size()).float()
+        return torch.sum(token_embeddings * input_mask_expanded, 1) / torch.clamp(input_mask_expanded.sum(1), min=1e-9)
+
+    def vectorize(self, text: str, config: VectorInputConfig):
+        encoded_input = self.tokenizer([text], padding=True, truncation=True, return_tensors='pt')
+        # Compute token embeddings
+        with torch.no_grad():
+            model_output = self.model(**encoded_input)
+
+        # Perform pooling
+        sentence_embeddings = self.mean_pooling(model_output, encoded_input['attention_mask'])
+
+        # Normalize embeddings
+        sentence_embeddings = F.normalize(sentence_embeddings, p=2, dim=1)
+        return sentence_embeddings[0]
 
 
 class HuggingFaceVectorizer:
