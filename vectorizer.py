@@ -78,12 +78,12 @@ class ONNXVectorizer:
         onnx_path = Path(model_path)
         self.model = ORTModelForFeatureExtraction.from_pretrained(onnx_path, file_name="model_quantized.onnx")
         self.tokenizer = AutoTokenizer.from_pretrained(onnx_path)
-    
+
     def mean_pooling(self, model_output, attention_mask):
         token_embeddings = model_output[0] #First element of model_output contains all token embeddings
         input_mask_expanded = attention_mask.unsqueeze(-1).expand(token_embeddings.size()).float()
         return torch.sum(token_embeddings * input_mask_expanded, 1) / torch.clamp(input_mask_expanded.sum(1), min=1e-9)
-    
+
     def vectorize(self, text: str, config: VectorInputConfig):
         encoded_input = self.tokenizer([text], padding=True, truncation=True, return_tensors='pt')
         # Compute token embeddings

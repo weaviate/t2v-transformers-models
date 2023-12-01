@@ -58,10 +58,21 @@ def startup_event():
                 return onnx_runtime == "true"
         return False
 
+    def log_info_about_onnx(onnx_runtime: bool):
+        if onnx_runtime:
+            onnx_quantization_info = "missing"
+            if os.path.exists(f"{model_dir}/onnx_quantization_info"):
+                with open(f"{model_dir}/onnx_quantization_info", "r") as f:
+                    onnx_quantization_info = f.read()
+            logger.info(f"Running ONNX vectorizer with quantized model for {onnx_quantization_info}")
+
+    onnx_runtime = get_onnx_runtime()
+    log_info_about_onnx(onnx_runtime)
+
     meta_config = Meta(get_model_directory())
     vec = Vectorizer(get_model_directory(), cuda_support, cuda_core, cuda_per_process_memory_fraction,
                      meta_config.get_model_type(), meta_config.get_architecture(), 
-                     direct_tokenize, get_onnx_runtime())
+                     direct_tokenize, onnx_runtime)
 
 
 @app.get("/.well-known/live", response_class=Response)

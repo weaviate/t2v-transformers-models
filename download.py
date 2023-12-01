@@ -43,15 +43,25 @@ def download_onnx_model(model_name: str, model_dir: str):
     # Save model
     ort_model.save_pretrained(onnx_path)
 
+    def save_to_file(filepath: str, content: str):
+        with open(filepath, "w") as f:
+            f.write(content)
+
+    def save_quantization_info(arch: str):
+        save_to_file(f"{model_dir}/onnx_quantization_info", arch)
+
     def quantization_config(onnx_cpu_arch: str):
         if onnx_cpu_arch.lower() == "avx512_vnni":
             print("Quantize Model for x86_64 (amd64) (avx512_vnni)")
+            save_quantization_info("AVX-512")
             return AutoQuantizationConfig.avx512_vnni(is_static=False, per_channel=False)
         if onnx_cpu_arch.lower() == "arm64":
             print(f"Quantize Model for ARM64")
+            save_quantization_info("ARM64")
             return AutoQuantizationConfig.arm64(is_static=False, per_channel=False)
-        # default is AMD64
+        # default is AMD64 (AVX2)
         print(f"Quantize Model for x86_64 (amd64) (AVX2)")
+        save_quantization_info("amd64 (AVX2)")
         return AutoQuantizationConfig.avx2(is_static=False, per_channel=False)
 
     # Quantize the model / convert to ONNX
@@ -63,8 +73,7 @@ def download_onnx_model(model_name: str, model_dir: str):
     if os.path.isfile(f"{model_dir}/model.onnx"):
         os.remove(f"{model_dir}/model.onnx")
     # Save information about ONNX runtime
-    with open(f"{model_dir}/onnx_runtime", "w") as f:
-        f.write(onnx_runtime)
+    save_to_file(f"{model_dir}/onnx_runtime", onnx_runtime)
     tokenizer = AutoTokenizer.from_pretrained(model_name)
     tokenizer.save_pretrained(onnx_path)
 
