@@ -34,6 +34,10 @@ onnx_cpu_arch = os.getenv('ONNX_CPU')
 if not onnx_cpu_arch:
     onnx_cpu_arch = "arm64"
 
+use_sentence_transformers_vectorizer = os.getenv('USE_SENTENCE_TRANSFORMERS_VECTORIZER')
+if not use_sentence_transformers_vectorizer:
+    use_sentence_transformers_vectorizer = "false"
+
 print(f"Downloading MODEL_NAME={model_name} with FORCE_AUTOMODEL={force_automodel} ONNX_RUNTIME={onnx_runtime} ONNX_CPU={onnx_cpu_arch}")
 
 def download_onnx_model(model_name: str, model_dir: str):
@@ -82,7 +86,7 @@ def download_model(model_name: str, model_dir: str):
     config = AutoConfig.from_pretrained(model_name)
     model_type = config.to_dict()['model_type']
 
-    if model_type is not None and model_type == "t5":
+    if (model_type is not None and model_type == "t5") or use_sentence_transformers_vectorizer.lower() == "true":
         SentenceTransformer(model_name, cache_folder=model_dir)
         with open(f"{model_dir}/model_name", "w") as f:
             f.write(model_name.replace("/", "_"))

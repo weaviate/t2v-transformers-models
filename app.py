@@ -44,12 +44,13 @@ def startup_event():
         direct_tokenize = True
 
     model_dir = "./models/model"
-    def get_model_directory() -> str:
+    def get_model_directory() -> (str, bool):
         if os.path.exists(f"{model_dir}/model_name"):
             with open(f"{model_dir}/model_name", "r") as f:
                 model_name = f.read()
-                return f"{model_dir}/{model_name}"
-        return model_dir
+                return f"{model_dir}/{model_name}", True
+        # Default model directory is ./models/model
+        return model_dir, False
 
     def get_onnx_runtime() -> bool:
         if os.path.exists(f"{model_dir}/onnx_runtime"):
@@ -66,13 +67,14 @@ def startup_event():
                     onnx_quantization_info = f.read()
             logger.info(f"Running ONNX vectorizer with quantized model for {onnx_quantization_info}")
 
+    model_dir, use_sentence_transformer_vectorizer = get_model_directory()
     onnx_runtime = get_onnx_runtime()
     log_info_about_onnx(onnx_runtime)
 
-    meta_config = Meta(get_model_directory())
-    vec = Vectorizer(get_model_directory(), cuda_support, cuda_core, cuda_per_process_memory_fraction,
+    meta_config = Meta(model_dir)
+    vec = Vectorizer(model_dir, cuda_support, cuda_core, cuda_per_process_memory_fraction,
                      meta_config.get_model_type(), meta_config.get_architecture(), 
-                     direct_tokenize, onnx_runtime)
+                     direct_tokenize, onnx_runtime, use_sentence_transformer_vectorizer)
 
 
 @app.get("/.well-known/live", response_class=Response)

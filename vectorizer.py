@@ -37,12 +37,13 @@ class VectorInput(BaseModel):
 class Vectorizer:
     executor: ThreadPoolExecutor
 
-    def __init__(self, model_path: str, cuda_support: bool, cuda_core: str, cuda_per_process_memory_fraction: float, model_type: str, architecture: str, direct_tokenize: bool, onnx_runtime: bool):
+    def __init__(self, model_path: str, cuda_support: bool, cuda_core: str, cuda_per_process_memory_fraction: float, 
+                 model_type: str, architecture: str, direct_tokenize: bool, onnx_runtime: bool, use_sentence_transformer_vectorizer: bool):
         self.executor = ThreadPoolExecutor()
         if onnx_runtime:
             self.vectorizer = ONNXVectorizer(model_path)
         else:
-            if model_type == 't5':
+            if model_type == 't5' or use_sentence_transformer_vectorizer:
                 self.vectorizer = SentenceTransformerVectorizer(model_path, cuda_core)
             else:
                 self.vectorizer = HuggingFaceVectorizer(model_path, cuda_support, cuda_core, cuda_per_process_memory_fraction, model_type, architecture, direct_tokenize)
