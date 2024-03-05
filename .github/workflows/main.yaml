@@ -90,6 +90,9 @@ jobs:
           - model_name: BAAI/bge-base-en-v1.5
             model_tag_name: baai-bge-base-en-v1.5
             onnx_runtime: true
+          - model_name: BAAI/bge-m3
+            model_tag_name: baai-bge-m3
+            onnx_runtime: true
           - model_name: sentence-transformers/all-MiniLM-L6-v2
             model_tag_name: sentence-transformers-all-MiniLM-L6-v2
             onnx_runtime: true
