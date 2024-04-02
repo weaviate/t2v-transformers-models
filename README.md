@@ -41,6 +41,7 @@ The pre-built models include:
 |`google/flan-t5-large` ([Info](https://huggingface.co/google/flan-t5-large))|`semitechnologies/transformers-inference:sentence-transformers-gtr-t5-large`|
 |`BAAI/bge-small-en-v1.5` ([Info](https://huggingface.co/BAAI/bge-small-en-v1.5))|`semitechnologies/transformers-inference:baai-bge-small-en-v1.5`|
 |`BAAI/bge-base-en-v1.5` ([Info](https://huggingface.co/BAAI/bge-base-en-v1.5))|`semitechnologies/transformers-inference:baai-bge-base-en-v1.5`|
+|`mixedbread-ai/mxbai-embed-large-v1` ([Info](https://huggingface.co/mixedbread-ai/mxbai-embed-large-v1))|`semitechnologies/transformers-inference:mixedbread-ai-mxbai-embed-large-v1`|
 |DPR Models|
 |`facebook/dpr-ctx_encoder-single-nq-base` ([Info](https://huggingface.co/facebook/dpr-ctx_encoder-single-nq-base))|`semitechnologies/transformers-inference:facebook-dpr-ctx_encoder-single-nq-base`|
 |`facebook/dpr-question_encoder-single-nq-base` ([Info](https://huggingface.co/facebook/dpr-question_encoder-single-nq-base))|`semitechnologies/transformers-inference:facebook-dpr-question_encoder-single-nq-base`|
@@ -54,6 +55,7 @@ The pre-built models include:
 |`BAAI/bge-base-en-v1.5` ([Info](https://huggingface.co/BAAI/bge-base-en-v1.5))|`semitechnologies/transformers-inference:baai-bge-base-en-v1.5-onnx`|
 |`BAAI/bge-m3` ([Info](https://huggingface.co/BAAI/bge-m3))|`semitechnologies/transformers-inference:baai-bge-m3-onnx`|
 |`sentence-transformers/all-MiniLM-L6-v2` ([Info](https://huggingface.co/sentence-transformers/all-MiniLM-L6-v2))|`semitechnologies/transformers-inference:sentence-transformers-all-MiniLM-L6-v2-onnx`|
+|`mixedbread-ai/mxbai-embed-large-v1` ([Info](https://huggingface.co/mixedbread-ai/mxbai-embed-large-v1))|`semitechnologies/transformers-inference:mixedbread-ai-mxbai-embed-large-v1-onnx`|
 
 
 The above image names always point to the latest version of the inference
