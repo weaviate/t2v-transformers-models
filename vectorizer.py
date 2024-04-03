@@ -38,13 +38,14 @@ class Vectorizer:
     executor: ThreadPoolExecutor
 
     def __init__(self, model_path: str, cuda_support: bool, cuda_core: str, cuda_per_process_memory_fraction: float, 
-                 model_type: str, architecture: str, direct_tokenize: bool, onnx_runtime: bool, use_sentence_transformer_vectorizer: bool):
+                 model_type: str, architecture: str, direct_tokenize: bool, onnx_runtime: bool,
+                 use_sentence_transformer_vectorizer: bool, model_name: str):
         self.executor = ThreadPoolExecutor()
         if onnx_runtime:
             self.vectorizer = ONNXVectorizer(model_path)
         else:
             if model_type == 't5' or use_sentence_transformer_vectorizer:
-                self.vectorizer = SentenceTransformerVectorizer(model_path, cuda_core)
+                self.vectorizer = SentenceTransformerVectorizer(model_path, model_name, cuda_core)
             else:
                 self.vectorizer = HuggingFaceVectorizer(model_path, cuda_support, cuda_core, cuda_per_process_memory_fraction, model_type, architecture, direct_tokenize)
 
@@ -56,9 +57,9 @@ class SentenceTransformerVectorizer:
     model: SentenceTransformer
     cuda_core: str
 
-    def __init__(self, model_path: str, cuda_core: str):
+    def __init__(self, model_path: str, model_name: str, cuda_core: str):
         self.cuda_core = cuda_core
-        self.model = SentenceTransformer(model_path, device=self.get_device())
+        self.model = SentenceTransformer(model_name, cache_folder=model_path, device=self.get_device())
         self.model.eval() # make sure we're in inference mode, not training
 
     def get_device(self) -> Optional[str]:
