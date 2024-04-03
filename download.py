@@ -89,7 +89,7 @@ def download_model(model_name: str, model_dir: str):
     if (model_type is not None and model_type == "t5") or use_sentence_transformers_vectorizer.lower() == "true":
         SentenceTransformer(model_name, cache_folder=model_dir)
         with open(f"{model_dir}/model_name", "w") as f:
-            f.write(model_name.replace("/", "_"))
+            f.write(model_name)
     else:
         if config.architectures and not force_automodel:
             print(f"Using class {config.architectures[0]} to load model weights")
