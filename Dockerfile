@@ -1,6 +1,9 @@
-FROM --platform=$BUILDPLATFORM python:3.11-slim
+FROM python:3.11-slim
 
 WORKDIR /app
+
+RUN apt-get update
+RUN pip install --upgrade pip setuptools
 
 COPY requirements.txt .
 RUN pip3 install -r requirements.txt
