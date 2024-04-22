@@ -42,6 +42,10 @@ The pre-built models include:
 |`BAAI/bge-small-en-v1.5` ([Info](https://huggingface.co/BAAI/bge-small-en-v1.5))|`semitechnologies/transformers-inference:baai-bge-small-en-v1.5`|
 |`BAAI/bge-base-en-v1.5` ([Info](https://huggingface.co/BAAI/bge-base-en-v1.5))|`semitechnologies/transformers-inference:baai-bge-base-en-v1.5`|
 |`mixedbread-ai/mxbai-embed-large-v1` ([Info](https://huggingface.co/mixedbread-ai/mxbai-embed-large-v1))|`semitechnologies/transformers-inference:mixedbread-ai-mxbai-embed-large-v1`|
+|`Snowflake/snowflake-arctic-embed-xs` ([Info](https://huggingface.co/Snowflake/snowflake-arctic-embed-xs))|`semitechnologies/transformers-inference:snowflake-snowflake-arctic-embed-xs`|
+|`Snowflake/snowflake-arctic-embed-s` ([Info](https://huggingface.co/Snowflake/snowflake-arctic-embed-s))|`semitechnologies/transformers-inference:snowflake-snowflake-arctic-embed-s`|
+|`Snowflake/snowflake-arctic-embed-m` ([Info](https://huggingface.co/Snowflake/snowflake-arctic-embed-m))|`semitechnologies/transformers-inference:snowflake-snowflake-arctic-embed-m`|
+|`Snowflake/snowflake-arctic-embed-l` ([Info](https://huggingface.co/Snowflake/snowflake-arctic-embed-l))|`semitechnologies/transformers-inference:snowflake-snowflake-arctic-embed-l`|
 |DPR Models|
 |`facebook/dpr-ctx_encoder-single-nq-base` ([Info](https://huggingface.co/facebook/dpr-ctx_encoder-single-nq-base))|`semitechnologies/transformers-inference:facebook-dpr-ctx_encoder-single-nq-base`|
 |`facebook/dpr-question_encoder-single-nq-base` ([Info](https://huggingface.co/facebook/dpr-question_encoder-single-nq-base))|`semitechnologies/transformers-inference:facebook-dpr-question_encoder-single-nq-base`|
@@ -56,6 +60,10 @@ The pre-built models include:
 |`BAAI/bge-m3` ([Info](https://huggingface.co/BAAI/bge-m3))|`semitechnologies/transformers-inference:baai-bge-m3-onnx`|
 |`sentence-transformers/all-MiniLM-L6-v2` ([Info](https://huggingface.co/sentence-transformers/all-MiniLM-L6-v2))|`semitechnologies/transformers-inference:sentence-transformers-all-MiniLM-L6-v2-onnx`|
 |`mixedbread-ai/mxbai-embed-large-v1` ([Info](https://huggingface.co/mixedbread-ai/mxbai-embed-large-v1))|`semitechnologies/transformers-inference:mixedbread-ai-mxbai-embed-large-v1-onnx`|
+|`Snowflake/snowflake-arctic-embed-xs` ([Info](https://huggingface.co/Snowflake/snowflake-arctic-embed-xs))|`semitechnologies/transformers-inference:snowflake-snowflake-arctic-embed-xs-onnx`|
+|`Snowflake/snowflake-arctic-embed-s` ([Info](https://huggingface.co/Snowflake/snowflake-arctic-embed-s))|`semitechnologies/transformers-inference:snowflake-snowflake-arctic-embed-s-onnx`|
+|`Snowflake/snowflake-arctic-embed-m` ([Info](https://huggingface.co/Snowflake/snowflake-arctic-embed-m))|`semitechnologies/transformers-inference:snowflake-snowflake-arctic-embed-m-onnx`|
+|`Snowflake/snowflake-arctic-embed-l` ([Info](https://huggingface.co/Snowflake/snowflake-arctic-embed-l))|`semitechnologies/transformers-inference:snowflake-snowflake-arctic-embed-l-onnx`|
 
 
 The above image names always point to the latest version of the inference

@@ -103,6 +103,30 @@ jobs:
           - model_name: mixedbread-ai/mxbai-embed-large-v1
             model_tag_name: mixedbread-ai-mxbai-embed-large-v1
             onnx_runtime: true
+          - model_name: Snowflake/snowflake-arctic-embed-xs
+            model_tag_name: snowflake-snowflake-arctic-embed-xs
+            onnx_runtime: false
+          - model_name: Snowflake/snowflake-arctic-embed-xs
+            model_tag_name: snowflake-snowflake-arctic-embed-xs
+            onnx_runtime: true
+          - model_name: Snowflake/snowflake-arctic-embed-s
+            model_tag_name: snowflake-snowflake-arctic-embed-s
+            onnx_runtime: false
+          - model_name: Snowflake/snowflake-arctic-embed-s
+            model_tag_name: snowflake-snowflake-arctic-embed-s
+            onnx_runtime: true
+          - model_name: Snowflake/snowflake-arctic-embed-m
+            model_tag_name: snowflake-snowflake-arctic-embed-m
+            onnx_runtime: false
+          - model_name: Snowflake/snowflake-arctic-embed-m
+            model_tag_name: snowflake-snowflake-arctic-embed-m
+            onnx_runtime: true
+          - model_name: Snowflake/snowflake-arctic-embed-l
+            model_tag_name: snowflake-snowflake-arctic-embed-l
+            onnx_runtime: false
+          - model_name: Snowflake/snowflake-arctic-embed-l
+            model_tag_name: snowflake-snowflake-arctic-embed-l
+            onnx_runtime: true
     env:
       LOCAL_REPO: transformers-inference
       REMOTE_REPO: semitechnologies/transformers-inference
