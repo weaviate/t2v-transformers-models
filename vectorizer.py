@@ -1,24 +1,21 @@
 import asyncio
-from concurrent.futures import ThreadPoolExecutor
 import math
+from concurrent.futures import ThreadPoolExecutor
+from pathlib import Path
 from typing import Optional
+
+import nltk
 import torch
 import torch.nn.functional as F
-from pathlib import Path
-import nltk
 from nltk.tokenize import sent_tokenize
-from pydantic import BaseModel
-from transformers import (
-    AutoModel,
-    AutoTokenizer,
-    T5ForConditionalGeneration,
-    T5Tokenizer,
-    DPRContextEncoder,
-    DPRQuestionEncoder,
-)
-from sentence_transformers import SentenceTransformer
 from optimum.onnxruntime import ORTModelForFeatureExtraction
+from pydantic import BaseModel
+from sentence_transformers import SentenceTransformer
+from transformers import (AutoModel, AutoTokenizer, DPRContextEncoder,
+                          DPRQuestionEncoder, T5ForConditionalGeneration,
+                          T5Tokenizer)
 
+from config import TRUST_REMOTE_CODE
 
 # limit transformer batch size to limit parallel inference, otherwise we run
 # into memory problems
@@ -78,8 +75,9 @@ class ONNXVectorizer:
 
     def __init__(self, model_path) -> None:
         onnx_path = Path(model_path)
-        self.model = ORTModelForFeatureExtraction.from_pretrained(onnx_path, file_name="model_quantized.onnx")
-        self.tokenizer = AutoTokenizer.from_pretrained(onnx_path)
+        self.model = ORTModelForFeatureExtraction.from_pretrained(onnx_path, file_name="model_quantized.onnx",
+                                                                trust_remote_code=TRUST_REMOTE_CODE)
+        self.tokenizer = AutoTokenizer.from_pretrained(onnx_path, trust_remote_code=TRUST_REMOTE_CODE)
 
     def mean_pooling(self, model_output, attention_mask):
         token_embeddings = model_output[0] #First element of model_output contains all token embeddings
@@ -179,11 +177,11 @@ class HFModel:
         self.cuda_core = cuda_core
 
     def create_tokenizer(self, model_path):
-        self.tokenizer = AutoTokenizer.from_pretrained(model_path)
+        self.tokenizer = AutoTokenizer.from_pretrained(model_path, trust_remote_code=TRUST_REMOTE_CODE)
         return self.tokenizer
 
     def create_model(self, model_path):
-        self.model = AutoModel.from_pretrained(model_path)
+        self.model = AutoModel.from_pretrained(model_path, trust_remote_code=TRUST_REMOTE_CODE)
         return self.model
 
     def get_embeddings(self, batch_results):
@@ -236,9 +234,9 @@ class DPRModel(HFModel):
 
     def create_model(self, model_path):
         if self.architecture == "DPRQuestionEncoder":
-            self.model = DPRQuestionEncoder.from_pretrained(model_path)
+            self.model = DPRQuestionEncoder.from_pretrained(model_path, trust_remote_code=TRUST_REMOTE_CODE)
         else:
-            self.model = DPRContextEncoder.from_pretrained(model_path)
+            self.model = DPRContextEncoder.from_pretrained(model_path, trust_remote_code=TRUST_REMOTE_CODE)
         return self.model
 
     def get_batch_results(self, tokens, text):
@@ -259,11 +257,11 @@ class T5Model(HFModel):
         self.cuda_core = cuda_core
 
     def create_model(self, model_path):
-        self.model = T5ForConditionalGeneration.from_pretrained(model_path)
+        self.model = T5ForConditionalGeneration.from_pretrained(model_path, trust_remote_code=TRUST_REMOTE_CODE)
         return self.model
 
     def create_tokenizer(self, model_path):
-        self.tokenizer = T5Tokenizer.from_pretrained(model_path)
+        self.tokenizer = T5Tokenizer.from_pretrained(model_path, trust_remote_code=TRUST_REMOTE_CODE)
         return self.tokenizer
 
     def get_embeddings(self, batch_results):

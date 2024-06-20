@@ -1,22 +1,29 @@
 from transformers import AutoConfig
 
+from config import TRUST_REMOTE_CODE
+
 
 class Meta:
     config: AutoConfig
 
-    def __init__(self, model_path: str, model_name: str, use_sentence_transformer_vectorizer: bool):
+    def __init__(
+        self,
+        model_path: str,
+        model_name: str,
+        use_sentence_transformer_vectorizer: bool,
+    ):
         if use_sentence_transformer_vectorizer:
             self.config = {"model_name": model_name, "model_type": None}
         else:
-            self.config = AutoConfig.from_pretrained(model_path).to_dict()
+            self.config = AutoConfig.from_pretrained(
+                model_path, trust_remote_code=TRUST_REMOTE_CODE
+            ).to_dict()
 
     def get(self):
-        return {
-            'model': self.config
-        }
+        return {"model": self.config}
 
     def get_model_type(self):
-        return self.config['model_type']
+        return self.config["model_type"]
 
     def get_architecture(self):
         architecture = None
