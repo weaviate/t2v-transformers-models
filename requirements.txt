@@ -8,3 +8,4 @@ sentence-transformers==2.6.1
 optimum==1.17.1
 onnxruntime==1.17.1
 onnx==1.15.0
+numpy==1.26.4
