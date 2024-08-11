@@ -1,4 +1,4 @@
-FROM python:3.11-slim
+FROM python:3.11-slim AS base_image
 
 WORKDIR /app
 
@@ -8,13 +8,23 @@ RUN pip install --upgrade pip setuptools
 COPY requirements.txt .
 RUN pip3 install -r requirements.txt
 
+FROM base_image AS download_model
+
+WORKDIR /app
+
 ARG TARGETARCH
 ARG MODEL_NAME
 ARG ONNX_RUNTIME
 ENV ONNX_CPU=${TARGETARCH}
+RUN mkdir nltk_data
 COPY download.py .
 RUN ./download.py
 
+FROM base_image AS t2v_transformers
+
+WORKDIR /app
+COPY --from=download_model /app/models /app/models
+COPY --from=download_model /app/nltk_data /app/nltk_data
 COPY . .
 
 ENTRYPOINT ["/bin/sh", "-c"]

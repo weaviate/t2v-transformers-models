@@ -16,6 +16,7 @@ from pathlib import Path
 
 
 model_dir = './models/model'
+nltk_dir = './nltk_data'
 model_name = os.getenv('MODEL_NAME', None)
 force_automodel = os.getenv('FORCE_AUTOMODEL', False)
 if not model_name:
@@ -108,7 +109,7 @@ def download_model(model_name: str, model_dir: str):
         model.save_pretrained(model_dir)
         tokenizer.save_pretrained(model_dir)
 
-    nltk.download('punkt', download_dir='./nltk_data')
+    nltk.download('punkt', download_dir=nltk_dir)
 
 if onnx_runtime == "true":
     download_onnx_model(model_name, model_dir)
