@@ -3,6 +3,7 @@
 import os
 import sys
 import nltk
+from config import TRUST_REMOTE_CODE
 from transformers import (
     AutoModel,
     AutoTokenizer,
@@ -82,9 +83,9 @@ def download_onnx_model(model_name: str, model_dir: str):
     tokenizer = AutoTokenizer.from_pretrained(model_name)
     tokenizer.save_pretrained(onnx_path)
 
-def download_model(model_name: str, model_dir: str):
-    print(f"Downloading model {model_name} from huggingface model hub")
-    config = AutoConfig.from_pretrained(model_name)
+def download_model(model_name: str, model_dir: str, trust_remote_code: bool = False):
+    print(f"Downloading model {model_name} from huggingface model hub ({trust_remote_code=})")
+    config = AutoConfig.from_pretrained(model_name, trust_remote_code=trust_remote_code)
     model_type = config.to_dict()['model_type']
 
     if (model_type is not None and model_type == "t5") or use_sentence_transformers_vectorizer.lower() == "true":
@@ -100,11 +101,11 @@ def download_model(model_name: str, model_dir: str):
                 model = klass_architecture.from_pretrained(model_name)
             except AttributeError:
                 print(f"{config.architectures[0]} not found in transformers, fallback to AutoModel")
-                model = AutoModel.from_pretrained(model_name)
+                model = AutoModel.from_pretrained(model_name, trust_remote_code=trust_remote_code)
         else:
-            model = AutoModel.from_pretrained(model_name)
+            model = AutoModel.from_pretrained(model_name, trust_remote_code=trust_remote_code)
 
-        tokenizer = AutoTokenizer.from_pretrained(model_name)
+        tokenizer = AutoTokenizer.from_pretrained(model_name, trust_remote_code=trust_remote_code)
 
         model.save_pretrained(model_dir)
         tokenizer.save_pretrained(model_dir)
@@ -114,4 +115,4 @@ def download_model(model_name: str, model_dir: str):
 if onnx_runtime == "true":
     download_onnx_model(model_name, model_dir)
 else:
-    download_model(model_name, model_dir)
+    download_model(model_name, model_dir, TRUST_REMOTE_CODE)
