@@ -1,7 +1,7 @@
 transformers==4.42.4
 fastapi==0.112.0
 uvicorn==0.30.5
-nltk==3.8.1
+nltk==3.9.1
 torch==2.4.0
 sentencepiece==0.2.0
 sentence-transformers==3.0.1
