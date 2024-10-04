@@ -91,7 +91,9 @@ def download_onnx_model(
         os.remove(f"{model_dir}/model.onnx")
     # Save information about ONNX runtime
     save_to_file(f"{model_dir}/onnx_runtime", onnx_runtime)
-    tokenizer = AutoTokenizer.from_pretrained(model_name)
+    tokenizer = AutoTokenizer.from_pretrained(
+        model_name, trust_remote_code=trust_remote_code
+    )
     tokenizer.save_pretrained(onnx_path)
 
 

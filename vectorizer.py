@@ -11,16 +11,22 @@ from nltk.tokenize import sent_tokenize
 from optimum.onnxruntime import ORTModelForFeatureExtraction
 from pydantic import BaseModel
 from sentence_transformers import SentenceTransformer
-from transformers import (AutoModel, AutoTokenizer, DPRContextEncoder,
-                          DPRQuestionEncoder, T5ForConditionalGeneration,
-                          T5Tokenizer)
+from transformers import (
+    AutoModel,
+    AutoTokenizer,
+    DPRContextEncoder,
+    DPRQuestionEncoder,
+    T5ForConditionalGeneration,
+    T5Tokenizer,
+)
 
 from config import TRUST_REMOTE_CODE
 
 # limit transformer batch size to limit parallel inference, otherwise we run
 # into memory problems
 MAX_BATCH_SIZE = 25  # TODO: take from config
-DEFAULT_POOL_METHOD="masked_mean"
+DEFAULT_POOL_METHOD = "masked_mean"
+
 
 class VectorInputConfig(BaseModel):
     pooling_strategy: str
@@ -34,20 +40,42 @@ class VectorInput(BaseModel):
 class Vectorizer:
     executor: ThreadPoolExecutor
 
-    def __init__(self, model_path: str, cuda_support: bool, cuda_core: str, cuda_per_process_memory_fraction: float, 
-                 model_type: str, architecture: str, direct_tokenize: bool, onnx_runtime: bool,
-                 use_sentence_transformer_vectorizer: bool, model_name: str):
+    def __init__(
+        self,
+        model_path: str,
+        cuda_support: bool,
+        cuda_core: str,
+        cuda_per_process_memory_fraction: float,
+        model_type: str,
+        architecture: str,
+        direct_tokenize: bool,
+        onnx_runtime: bool,
+        use_sentence_transformer_vectorizer: bool,
+        model_name: str,
+    ):
         self.executor = ThreadPoolExecutor()
         if onnx_runtime:
             self.vectorizer = ONNXVectorizer(model_path)
         else:
-            if model_type == 't5' or use_sentence_transformer_vectorizer:
-                self.vectorizer = SentenceTransformerVectorizer(model_path, model_name, cuda_core)
+            if model_type == "t5" or use_sentence_transformer_vectorizer:
+                self.vectorizer = SentenceTransformerVectorizer(
+                    model_path, model_name, cuda_core
+                )
             else:
-                self.vectorizer = HuggingFaceVectorizer(model_path, cuda_support, cuda_core, cuda_per_process_memory_fraction, model_type, architecture, direct_tokenize)
+                self.vectorizer = HuggingFaceVectorizer(
+                    model_path,
+                    cuda_support,
+                    cuda_core,
+                    cuda_per_process_memory_fraction,
+                    model_type,
+                    architecture,
+                    direct_tokenize,
+                )
 
     async def vectorize(self, text: str, config: VectorInputConfig):
-        return await asyncio.wrap_future(self.executor.submit(self.vectorizer.vectorize, text, config))
+        return await asyncio.wrap_future(
+            self.executor.submit(self.vectorizer.vectorize, text, config)
+        )
 
 
 class SentenceTransformerVectorizer:
@@ -56,8 +84,10 @@ class SentenceTransformerVectorizer:
 
     def __init__(self, model_path: str, model_name: str, cuda_core: str):
         self.cuda_core = cuda_core
-        self.model = SentenceTransformer(model_name, cache_folder=model_path, device=self.get_device())
-        self.model.eval() # make sure we're in inference mode, not training
+        self.model = SentenceTransformer(
+            model_name, cache_folder=model_path, device=self.get_device()
+        )
+        self.model.eval()  # make sure we're in inference mode, not training
 
     def get_device(self) -> Optional[str]:
         if self.cuda_core is not None and self.cuda_core != "":
@@ -65,7 +95,12 @@ class SentenceTransformerVectorizer:
         return None
 
     def vectorize(self, text: str, config: VectorInputConfig):
-        embedding = self.model.encode([text], device=self.get_device(), convert_to_tensor=False, convert_to_numpy=True)
+        embedding = self.model.encode(
+            [text],
+            device=self.get_device(),
+            convert_to_tensor=False,
+            convert_to_numpy=True,
+        )
         return embedding[0]
 
 
@@ -75,23 +110,38 @@ class ONNXVectorizer:
 
     def __init__(self, model_path) -> None:
         onnx_path = Path(model_path)
-        self.model = ORTModelForFeatureExtraction.from_pretrained(onnx_path, file_name="model_quantized.onnx",
-                                                                trust_remote_code=TRUST_REMOTE_CODE)
-        self.tokenizer = AutoTokenizer.from_pretrained(onnx_path, trust_remote_code=TRUST_REMOTE_CODE)
+        self.model = ORTModelForFeatureExtraction.from_pretrained(
+            onnx_path,
+            file_name="model_quantized.onnx",
+            trust_remote_code=TRUST_REMOTE_CODE,
+        )
+        self.tokenizer = AutoTokenizer.from_pretrained(
+            onnx_path, trust_remote_code=TRUST_REMOTE_CODE
+        )
 
     def mean_pooling(self, model_output, attention_mask):
-        token_embeddings = model_output[0] #First element of model_output contains all token embeddings
-        input_mask_expanded = attention_mask.unsqueeze(-1).expand(token_embeddings.size()).float()
-        return torch.sum(token_embeddings * input_mask_expanded, 1) / torch.clamp(input_mask_expanded.sum(1), min=1e-9)
+        token_embeddings = model_output[
+            0
+        ]  # First element of model_output contains all token embeddings
+        input_mask_expanded = (
+            attention_mask.unsqueeze(-1).expand(token_embeddings.size()).float()
+        )
+        return torch.sum(token_embeddings * input_mask_expanded, 1) / torch.clamp(
+            input_mask_expanded.sum(1), min=1e-9
+        )
 
     def vectorize(self, text: str, config: VectorInputConfig):
-        encoded_input = self.tokenizer([text], padding=True, truncation=True, return_tensors='pt')
+        encoded_input = self.tokenizer(
+            [text], padding=True, truncation=True, return_tensors="pt"
+        )
         # Compute token embeddings
         with torch.no_grad():
             model_output = self.model(**encoded_input)
 
         # Perform pooling
-        sentence_embeddings = self.mean_pooling(model_output, encoded_input['attention_mask'])
+        sentence_embeddings = self.mean_pooling(
+            model_output, encoded_input["attention_mask"]
+        )
 
         # Normalize embeddings
         sentence_embeddings = F.normalize(sentence_embeddings, p=2, dim=1)
@@ -106,29 +156,48 @@ class HuggingFaceVectorizer:
     model_type: str
     direct_tokenize: bool
 
-    def __init__(self, model_path: str, cuda_support: bool, cuda_core: str, cuda_per_process_memory_fraction: float, model_type: str, architecture: str, direct_tokenize: bool):
+    def __init__(
+        self,
+        model_path: str,
+        cuda_support: bool,
+        cuda_core: str,
+        cuda_per_process_memory_fraction: float,
+        model_type: str,
+        architecture: str,
+        direct_tokenize: bool,
+    ):
         self.cuda = cuda_support
         self.cuda_core = cuda_core
         self.cuda_per_process_memory_fraction = cuda_per_process_memory_fraction
         self.model_type = model_type
         self.direct_tokenize = direct_tokenize
 
-        self.model_delegate: HFModel = ModelFactory.model(model_type, architecture, cuda_support, cuda_core)
+        self.model_delegate: HFModel = ModelFactory.model(
+            model_type, architecture, cuda_support, cuda_core
+        )
         self.model = self.model_delegate.create_model(model_path)
 
         if self.cuda:
             self.model.to(self.cuda_core)
             if self.cuda_per_process_memory_fraction:
-                torch.cuda.set_per_process_memory_fraction(self.cuda_per_process_memory_fraction)
-        self.model.eval() # make sure we're in inference mode, not training
+                torch.cuda.set_per_process_memory_fraction(
+                    self.cuda_per_process_memory_fraction
+                )
+        self.model.eval()  # make sure we're in inference mode, not training
 
         self.tokenizer = self.model_delegate.create_tokenizer(model_path)
 
-        nltk.data.path.append('./nltk_data')
+        nltk.data.path.append("./nltk_data")
 
-    def tokenize(self, text:str):
-        return self.tokenizer(text, padding=True, truncation=True, max_length=500,
-                add_special_tokens = True, return_tensors="pt")
+    def tokenize(self, text: str):
+        return self.tokenizer(
+            text,
+            padding=True,
+            truncation=True,
+            max_length=500,
+            add_special_tokens=True,
+            return_tensors="pt",
+        )
 
     def get_embeddings(self, batch_results):
         return self.model_delegate.get_embeddings(batch_results)
@@ -151,7 +220,11 @@ class HuggingFaceVectorizer:
                 return batch_sum_vectors.detach()
             else:
                 # tokenize text
-                sentences = sent_tokenize(' '.join(text.split(),))
+                sentences = sent_tokenize(
+                    " ".join(
+                        text.split(),
+                    )
+                )
                 num_sentences = len(sentences)
                 number_of_batch_vectors = math.ceil(num_sentences / MAX_BATCH_SIZE)
                 batch_sum_vectors = 0
@@ -162,8 +235,12 @@ class HuggingFaceVectorizer:
                     tokens = self.tokenize(sentences[start_index:end_index])
                     if self.cuda:
                         tokens.to(self.cuda_core)
-                    batch_results = self.get_batch_results(tokens, sentences[start_index:end_index])
-                    batch_sum_vectors += self.pool_embedding(batch_results, tokens, config)
+                    batch_results = self.get_batch_results(
+                        tokens, sentences[start_index:end_index]
+                    )
+                    batch_sum_vectors += self.pool_embedding(
+                        batch_results, tokens, config
+                    )
                 return batch_sum_vectors.detach() / num_sentences
 
 
@@ -177,11 +254,15 @@ class HFModel:
         self.cuda_core = cuda_core
 
     def create_tokenizer(self, model_path):
-        self.tokenizer = AutoTokenizer.from_pretrained(model_path, trust_remote_code=TRUST_REMOTE_CODE)
+        self.tokenizer = AutoTokenizer.from_pretrained(
+            model_path, trust_remote_code=TRUST_REMOTE_CODE
+        )
         return self.tokenizer
 
     def create_model(self, model_path):
-        self.model = AutoModel.from_pretrained(model_path, trust_remote_code=TRUST_REMOTE_CODE)
+        self.model = AutoModel.from_pretrained(
+            model_path, trust_remote_code=TRUST_REMOTE_CODE
+        )
         return self.model
 
     def get_embeddings(self, batch_results):
@@ -195,7 +276,9 @@ class HFModel:
         if pooling_method == "cls":
             return self.get_embeddings(batch_results)[:, 0, :].sum(0)
         elif pooling_method == "masked_mean":
-            return self.pool_sum(self.get_embeddings(batch_results), tokens['attention_mask'])
+            return self.pool_sum(
+                self.get_embeddings(batch_results), tokens["attention_mask"]
+            )
         else:
             raise Exception(f"invalid pooling method '{pooling_method}'")
 
@@ -210,8 +293,12 @@ class HFModel:
 
     def get_sum_embeddings_mask(self, embeddings, input_mask_expanded):
         if self.cuda:
-            sum_embeddings = torch.sum(embeddings * input_mask_expanded, 1).to(self.cuda_core)
-            sum_mask = torch.clamp(input_mask_expanded.sum(1), min=1e-9).to(self.cuda_core)
+            sum_embeddings = torch.sum(embeddings * input_mask_expanded, 1).to(
+                self.cuda_core
+            )
+            sum_mask = torch.clamp(input_mask_expanded.sum(1), min=1e-9).to(
+                self.cuda_core
+            )
             return sum_embeddings, sum_mask
         else:
             sum_embeddings = torch.sum(embeddings * input_mask_expanded, 1)
@@ -219,8 +306,12 @@ class HFModel:
             return sum_embeddings, sum_mask
 
     def pool_sum(self, embeddings, attention_mask):
-        input_mask_expanded = attention_mask.unsqueeze(-1).expand(embeddings.size()).float()
-        sum_embeddings, sum_mask = self.get_sum_embeddings_mask(embeddings, input_mask_expanded)
+        input_mask_expanded = (
+            attention_mask.unsqueeze(-1).expand(embeddings.size()).float()
+        )
+        sum_embeddings, sum_mask = self.get_sum_embeddings_mask(
+            embeddings, input_mask_expanded
+        )
         sentences = sum_embeddings / sum_mask
         return sentences.sum(0)
 
@@ -234,13 +325,17 @@ class DPRModel(HFModel):
 
     def create_model(self, model_path):
         if self.architecture == "DPRQuestionEncoder":
-            self.model = DPRQuestionEncoder.from_pretrained(model_path, trust_remote_code=TRUST_REMOTE_CODE)
+            self.model = DPRQuestionEncoder.from_pretrained(
+                model_path, trust_remote_code=TRUST_REMOTE_CODE
+            )
         else:
-            self.model = DPRContextEncoder.from_pretrained(model_path, trust_remote_code=TRUST_REMOTE_CODE)
+            self.model = DPRContextEncoder.from_pretrained(
+                model_path, trust_remote_code=TRUST_REMOTE_CODE
+            )
         return self.model
 
     def get_batch_results(self, tokens, text):
-        return self.model(tokens['input_ids'], tokens['attention_mask'])
+        return self.model(tokens["input_ids"], tokens["attention_mask"])
 
     def pool_embedding(self, batch_results, tokens, config: VectorInputConfig):
         # no pooling needed for DPR
@@ -257,18 +352,22 @@ class T5Model(HFModel):
         self.cuda_core = cuda_core
 
     def create_model(self, model_path):
-        self.model = T5ForConditionalGeneration.from_pretrained(model_path, trust_remote_code=TRUST_REMOTE_CODE)
+        self.model = T5ForConditionalGeneration.from_pretrained(
+            model_path, trust_remote_code=TRUST_REMOTE_CODE
+        )
         return self.model
 
     def create_tokenizer(self, model_path):
-        self.tokenizer = T5Tokenizer.from_pretrained(model_path, trust_remote_code=TRUST_REMOTE_CODE)
+        self.tokenizer = T5Tokenizer.from_pretrained(
+            model_path, trust_remote_code=TRUST_REMOTE_CODE
+        )
         return self.tokenizer
 
     def get_embeddings(self, batch_results):
         return batch_results["encoder_last_hidden_state"]
 
     def get_batch_results(self, tokens, text):
-        input_ids, attention_mask = tokens['input_ids'], tokens['attention_mask']
+        input_ids, attention_mask = tokens["input_ids"], tokens["attention_mask"]
 
         target_encoding = self.tokenizer(
             text, padding="longest", max_length=500, truncation=True
@@ -279,16 +378,18 @@ class T5Model(HFModel):
         else:
             labels = torch.tensor(labels)
 
-        return self.model(input_ids=input_ids, attention_mask=attention_mask, labels=labels)
+        return self.model(
+            input_ids=input_ids, attention_mask=attention_mask, labels=labels
+        )
 
 
 class ModelFactory:
 
     @staticmethod
     def model(model_type, architecture, cuda_support: bool, cuda_core: str):
-        if model_type == 't5':
+        if model_type == "t5":
             return T5Model(cuda_support, cuda_core)
-        elif model_type == 'dpr':
+        elif model_type == "dpr":
             return DPRModel(architecture, cuda_support, cuda_core)
         else:
             return HFModel(cuda_support, cuda_core)
