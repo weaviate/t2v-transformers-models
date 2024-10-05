@@ -7,6 +7,8 @@ model_name=${MODEL_NAME?Variable MODEL_NAME is required}
 docker_username=${DOCKER_USERNAME?Variable DOCKER_USERNAME is required}
 docker_password=${DOCKER_PASSWORD?Variable DOCKER_PASSWORD is required}
 onnx_runtime=${ONNX_RUNTIME?Variable ONNX_RUNTIME is required}
+trust_remote_code=${TRUST_REMOTE_CODE:-false}
+use_sentence_transformers_vectorizer=${USE_SENTENCE_TRANSFORMERS_VECTORIZER:-false}
 original_model_name=$model_name
 git_tag=$GITHUB_REF_NAME
 
@@ -16,6 +18,7 @@ function main() {
   echo "git ref name is $GITHUB_REF_NAME"
   echo "git tag is $git_tag"
   echo "onnx_runtime is $onnx_runtime"
+  echo "trust_remote_code is $trust_remote_code"
   push_tag
 }
 
@@ -46,6 +49,8 @@ function push_tag() {
     docker buildx build --platform=linux/arm64,linux/amd64 \
       --build-arg "MODEL_NAME=$original_model_name" \
       --build-arg "ONNX_RUNTIME=$onnx_runtime" \
+      --build-arg "TRUST_REMOTE_CODE=$trust_remote_code" \
+      --build-arg "USE_SENTENCE_TRANSFORMERS_VECTORIZER=$use_sentence_transformers_vectorizer" \
       --push \
       --tag "$tag_git" \
       --tag "$tag_latest" \
