@@ -11,7 +11,7 @@ from app import app
 
 
 def wait_for_uvicorn_start():
-    url = 'http://localhost:8000/.well-known/ready'
+    url = "http://localhost:8000/.well-known/ready"
 
     for i in range(0, 100):
         try:
@@ -19,8 +19,7 @@ def wait_for_uvicorn_start():
             if res.status_code == 204:
                 return
             else:
-                raise Exception(
-                    "status code is {}".format(res.status_code))
+                raise Exception("status code is {}".format(res.status_code))
         except Exception as e:
             print("Attempt {}: {}".format(i, e))
             time.sleep(2)
@@ -32,10 +31,15 @@ def run_server():
     uvicorn.run(app)
 
 
-@pytest.fixture(params=["t5-small",
-                        "distilroberta-base",
-                        "vblagoje/dpr-ctx_encoder-single-lfqa-wiki",
-                        "vblagoje/dpr-question_encoder-single-lfqa-wiki"], scope="function")
+@pytest.fixture(
+    params=[
+        "t5-small",
+        "distilroberta-base",
+        "vblagoje/dpr-ctx_encoder-single-lfqa-wiki",
+        "vblagoje/dpr-question_encoder-single-lfqa-wiki",
+    ],
+    scope="function",
+)
 def server(request):
     os.environ["MODEL_NAME"] = request.param
     subprocess.call("python download.py", shell=True)
@@ -48,12 +52,12 @@ def server(request):
 
 def test_vectorizing(server):
     wait_for_uvicorn_start()
-    url = 'http://127.0.0.1:8000/vectors/'
-    req_body = {'text': 'The London Eye is a ferris wheel at the River Thames.'}
+    url = "http://127.0.0.1:8000/vectors/"
+    req_body = {"text": "The London Eye is a ferris wheel at the River Thames."}
 
     res = requests.post(url, json=req_body)
     resBody = res.json()
-    vectorized_text = resBody['vector']
+    vectorized_text = resBody["vector"]
 
     assert 200 == res.status_code
 
@@ -66,14 +70,15 @@ def test_vectorizing(server):
 
     # now let's try two sentences
 
-    req_body = {'text': 'The London Eye is a ferris wheel at the River Thames. Here is the second sentence.'}
+    req_body = {
+        "text": "The London Eye is a ferris wheel at the River Thames. Here is the second sentence."
+    }
     res = requests.post(url, json=req_body)
     resBody = res.json()
-    vectorized_text = resBody['vector']
+    vectorized_text = resBody["vector"]
 
     assert 200 == res.status_code
 
     assert type(vectorized_text) is list
 
     assert 128 <= len(vectorized_text) <= 1024
-
