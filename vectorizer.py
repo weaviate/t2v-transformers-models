@@ -20,7 +20,6 @@ from transformers import (
     T5Tokenizer,
 )
 
-from config import TRUST_REMOTE_CODE
 
 # limit transformer batch size to limit parallel inference, otherwise we run
 # into memory problems
@@ -29,7 +28,8 @@ DEFAULT_POOL_METHOD = "masked_mean"
 
 
 class VectorInputConfig(BaseModel):
-    pooling_strategy: str
+    pooling_strategy: Optional[str] = None
+    task_type: Optional[str] = None
 
 
 class VectorInput(BaseModel):
@@ -52,14 +52,15 @@ class Vectorizer:
         onnx_runtime: bool,
         use_sentence_transformer_vectorizer: bool,
         model_name: str,
+        trust_remote_code: bool,
     ):
         self.executor = ThreadPoolExecutor()
         if onnx_runtime:
-            self.vectorizer = ONNXVectorizer(model_path)
+            self.vectorizer = ONNXVectorizer(model_path, trust_remote_code)
         else:
             if model_type == "t5" or use_sentence_transformer_vectorizer:
                 self.vectorizer = SentenceTransformerVectorizer(
-                    model_path, model_name, cuda_core
+                    model_path, model_name, cuda_core, trust_remote_code
                 )
             else:
                 self.vectorizer = HuggingFaceVectorizer(
@@ -70,6 +71,7 @@ class Vectorizer:
                     model_type,
                     architecture,
                     direct_tokenize,
+                    trust_remote_code,
                 )
 
     async def vectorize(self, text: str, config: VectorInputConfig):
@@ -82,10 +84,18 @@ class SentenceTransformerVectorizer:
     model: SentenceTransformer
     cuda_core: str
 
-    def __init__(self, model_path: str, model_name: str, cuda_core: str):
+    def __init__(
+        self, model_path: str, model_name: str, cuda_core: str, trust_remote_code: bool
+    ):
         self.cuda_core = cuda_core
+        print(
+            f"model_name={model_name}, cache_folder={model_path} device:{self.get_device()} trust_remote_code:{trust_remote_code}"
+        )
         self.model = SentenceTransformer(
-            model_name, cache_folder=model_path, device=self.get_device()
+            model_name,
+            cache_folder=model_path,
+            device=self.get_device(),
+            trust_remote_code=trust_remote_code,
         )
         self.model.eval()  # make sure we're in inference mode, not training
 
@@ -108,15 +118,15 @@ class ONNXVectorizer:
     model: ORTModelForFeatureExtraction
     tokenizer: AutoTokenizer
 
-    def __init__(self, model_path) -> None:
+    def __init__(self, model_path, trust_remote_code: bool) -> None:
         onnx_path = Path(model_path)
         self.model = ORTModelForFeatureExtraction.from_pretrained(
             onnx_path,
             file_name="model_quantized.onnx",
-            trust_remote_code=TRUST_REMOTE_CODE,
+            trust_remote_code=trust_remote_code,
         )
         self.tokenizer = AutoTokenizer.from_pretrained(
-            onnx_path, trust_remote_code=TRUST_REMOTE_CODE
+            onnx_path, trust_remote_code=trust_remote_code
         )
 
     def mean_pooling(self, model_output, attention_mask):
@@ -155,6 +165,7 @@ class HuggingFaceVectorizer:
     cuda_core: str
     model_type: str
     direct_tokenize: bool
+    trust_remote_code: bool
 
     def __init__(
         self,
@@ -165,15 +176,17 @@ class HuggingFaceVectorizer:
         model_type: str,
         architecture: str,
         direct_tokenize: bool,
+        trust_remote_code: bool,
     ):
         self.cuda = cuda_support
         self.cuda_core = cuda_core
         self.cuda_per_process_memory_fraction = cuda_per_process_memory_fraction
         self.model_type = model_type
         self.direct_tokenize = direct_tokenize
+        self.trust_remote_code = trust_remote_code
 
         self.model_delegate: HFModel = ModelFactory.model(
-            model_type, architecture, cuda_support, cuda_core
+            model_type, architecture, cuda_support, cuda_core, trust_remote_code
         )
         self.model = self.model_delegate.create_model(model_path)
 
@@ -246,22 +259,23 @@ class HuggingFaceVectorizer:
 
 class HFModel:
 
-    def __init__(self, cuda_support: bool, cuda_core: str):
+    def __init__(self, cuda_support: bool, cuda_core: str, trust_remote_code: bool):
         super().__init__()
         self.model = None
         self.tokenizer = None
         self.cuda = cuda_support
         self.cuda_core = cuda_core
+        self.trust_remote_code = trust_remote_code
 
     def create_tokenizer(self, model_path):
         self.tokenizer = AutoTokenizer.from_pretrained(
-            model_path, trust_remote_code=TRUST_REMOTE_CODE
+            model_path, trust_remote_code=self.trust_remote_code
         )
         return self.tokenizer
 
     def create_model(self, model_path):
         self.model = AutoModel.from_pretrained(
-            model_path, trust_remote_code=TRUST_REMOTE_CODE
+            model_path, trust_remote_code=self.trust_remote_code
         )
         return self.model
 
@@ -318,19 +332,26 @@ class HFModel:
 
 class DPRModel(HFModel):
 
-    def __init__(self, architecture: str, cuda_support: bool, cuda_core: str):
+    def __init__(
+        self,
+        architecture: str,
+        cuda_support: bool,
+        cuda_core: str,
+        trust_remote_code: bool,
+    ):
         super().__init__(cuda_support, cuda_core)
         self.model = None
         self.architecture = architecture
+        self.trust_remote_code = trust_remote_code
 
     def create_model(self, model_path):
         if self.architecture == "DPRQuestionEncoder":
             self.model = DPRQuestionEncoder.from_pretrained(
-                model_path, trust_remote_code=TRUST_REMOTE_CODE
+                model_path, trust_remote_code=self.trust_remote_code
             )
         else:
             self.model = DPRContextEncoder.from_pretrained(
-                model_path, trust_remote_code=TRUST_REMOTE_CODE
+                model_path, trust_remote_code=self.trust_remote_code
             )
         return self.model
 
@@ -344,22 +365,23 @@ class DPRModel(HFModel):
 
 class T5Model(HFModel):
 
-    def __init__(self, cuda_support: bool, cuda_core: str):
+    def __init__(self, cuda_support: bool, cuda_core: str, trust_remote_code: bool):
         super().__init__(cuda_support, cuda_core)
         self.model = None
         self.tokenizer = None
         self.cuda = cuda_support
         self.cuda_core = cuda_core
+        self.trust_remote_code = trust_remote_code
 
     def create_model(self, model_path):
         self.model = T5ForConditionalGeneration.from_pretrained(
-            model_path, trust_remote_code=TRUST_REMOTE_CODE
+            model_path, trust_remote_code=self.trust_remote_code
         )
         return self.model
 
     def create_tokenizer(self, model_path):
         self.tokenizer = T5Tokenizer.from_pretrained(
-            model_path, trust_remote_code=TRUST_REMOTE_CODE
+            model_path, trust_remote_code=self.trust_remote_code
         )
         return self.tokenizer
 
@@ -386,10 +408,16 @@ class T5Model(HFModel):
 class ModelFactory:
 
     @staticmethod
-    def model(model_type, architecture, cuda_support: bool, cuda_core: str):
+    def model(
+        model_type,
+        architecture,
+        cuda_support: bool,
+        cuda_core: str,
+        trust_remote_code: bool,
+    ):
         if model_type == "t5":
-            return T5Model(cuda_support, cuda_core)
+            return T5Model(cuda_support, cuda_core, trust_remote_code)
         elif model_type == "dpr":
-            return DPRModel(architecture, cuda_support, cuda_core)
+            return DPRModel(architecture, cuda_support, cuda_core, trust_remote_code)
         else:
-            return HFModel(cuda_support, cuda_core)
+            return HFModel(cuda_support, cuda_core, trust_remote_code)
