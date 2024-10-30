@@ -53,7 +53,7 @@ def startup_event():
     ):
         direct_tokenize = True
 
-    model_dir = "./models/model"
+    model_dir = os.getenv("MODEL_DIRECTORY", "./models/model")
 
     def get_model_directory() -> (str, bool):
         if os.path.exists(f"{model_dir}/model_name"):
