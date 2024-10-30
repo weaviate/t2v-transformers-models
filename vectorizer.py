@@ -1,3 +1,4 @@
+import os
 import asyncio
 import math
 from concurrent.futures import ThreadPoolExecutor
@@ -83,9 +84,17 @@ class SentenceTransformerVectorizer:
     cuda_core: str
 
     def __init__(self, model_path: str, model_name: str, cuda_core: str):
+        local_files_only = os.getenv("LOCAL_FILES_ONLY", "False").lower() in (
+            "true",
+            "1",
+            "t",
+        )
         self.cuda_core = cuda_core
         self.model = SentenceTransformer(
-            model_name, cache_folder=model_path, device=self.get_device()
+            model_name,
+            cache_folder=model_path,
+            device=self.get_device(),
+            local_files_only=local_files_only,
         )
         self.model.eval()  # make sure we're in inference mode, not training
 
@@ -245,7 +254,6 @@ class HuggingFaceVectorizer:
 
 
 class HFModel:
-
     def __init__(self, cuda_support: bool, cuda_core: str):
         super().__init__()
         self.model = None
@@ -317,7 +325,6 @@ class HFModel:
 
 
 class DPRModel(HFModel):
-
     def __init__(self, architecture: str, cuda_support: bool, cuda_core: str):
         super().__init__(cuda_support, cuda_core)
         self.model = None
@@ -343,7 +350,6 @@ class DPRModel(HFModel):
 
 
 class T5Model(HFModel):
-
     def __init__(self, cuda_support: bool, cuda_core: str):
         super().__init__(cuda_support, cuda_core)
         self.model = None
@@ -384,7 +390,6 @@ class T5Model(HFModel):
 
 
 class ModelFactory:
-
     @staticmethod
     def model(model_type, architecture, cuda_support: bool, cuda_core: str):
         if model_type == "t5":
