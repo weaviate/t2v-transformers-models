@@ -15,7 +15,7 @@ from optimum.onnxruntime import ORTQuantizer
 from pathlib import Path
 
 
-model_dir = "./models/model"
+model_dir = os.getenv("MODEL_DIRECTORY", "./models/model")
 nltk_dir = "./nltk_data"
 model_name = os.getenv("MODEL_NAME", None)
 force_automodel = os.getenv("FORCE_AUTOMODEL", False)
