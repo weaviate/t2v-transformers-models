@@ -3,6 +3,7 @@
 import os
 import sys
 import nltk
+import json
 from transformers import (
     AutoModel,
     AutoTokenizer,
@@ -98,6 +99,18 @@ def download_onnx_model(
 
 
 def download_model(model_name: str, model_dir: str, trust_remote_code: bool = False):
+    def save_model_name(model_name: str):
+        with open(f"{model_dir}/model_name", "w") as f:
+            f.write(model_name)
+
+    def save_trust_remote_code(trust_remote_code: bool):
+        with open(f"{model_dir}/trust_remote_code", "w") as f:
+            f.write(f"{trust_remote_code}")
+
+    def save_model_config(model_config):
+        with open(f"{model_dir}/model_config", "w") as f:
+            f.write(json.dumps(model_config))
+
     print(
         f"Downloading model {model_name} from huggingface model hub ({trust_remote_code=})"
     )
@@ -107,9 +120,11 @@ def download_model(model_name: str, model_dir: str, trust_remote_code: bool = Fa
     if (
         model_type is not None and model_type == "t5"
     ) or use_sentence_transformers_vectorizer.lower() == "true":
-        SentenceTransformer(model_name, cache_folder=model_dir)
-        with open(f"{model_dir}/model_name", "w") as f:
-            f.write(model_name)
+        SentenceTransformer(
+            model_name, cache_folder=model_dir, trust_remote_code=trust_remote_code
+        )
+        save_model_name(model_name)
+        save_model_config(config.to_dict())
     else:
         if config.architectures and not force_automodel:
             print(f"Using class {config.architectures[0]} to load model weights")
@@ -135,6 +150,8 @@ def download_model(model_name: str, model_dir: str, trust_remote_code: bool = Fa
 
         model.save_pretrained(model_dir)
         tokenizer.save_pretrained(model_dir)
+
+    save_trust_remote_code(trust_remote_code)
 
     nltk.download("punkt", download_dir=nltk_dir)
     nltk.download("punkt_tab", download_dir=nltk_dir)

@@ -1,6 +1,8 @@
 import os
 from logging import getLogger
 from fastapi import FastAPI, Response, status
+from typing import Union
+from config import TRUST_REMOTE_CODE
 from vectorizer import Vectorizer, VectorInput
 from meta import Meta
 
@@ -55,7 +57,7 @@ def startup_event():
 
     model_dir = "./models/model"
 
-    def get_model_directory() -> (str, bool):
+    def get_model_name() -> Union[str, bool]:
         if os.path.exists(f"{model_dir}/model_name"):
             with open(f"{model_dir}/model_name", "r") as f:
                 model_name = f.read()
@@ -70,6 +72,13 @@ def startup_event():
                 return onnx_runtime == "true"
         return False
 
+    def get_trust_remote_code() -> bool:
+        if os.path.exists(f"{model_dir}/trust_remote_code"):
+            with open(f"{model_dir}/trust_remote_code", "r") as f:
+                trust_remote_code = f.read()
+                return trust_remote_code == "true"
+        return TRUST_REMOTE_CODE
+
     def log_info_about_onnx(onnx_runtime: bool):
         if onnx_runtime:
             onnx_quantization_info = "missing"
@@ -80,11 +89,17 @@ def startup_event():
                 f"Running ONNX vectorizer with quantized model for {onnx_quantization_info}"
             )
 
-    model_name, use_sentence_transformer_vectorizer = get_model_directory()
+    model_name, use_sentence_transformer_vectorizer = get_model_name()
     onnx_runtime = get_onnx_runtime()
+    trust_remote_code = get_trust_remote_code()
     log_info_about_onnx(onnx_runtime)
 
-    meta_config = Meta(model_dir, model_name, use_sentence_transformer_vectorizer)
+    meta_config = Meta(
+        model_dir,
+        model_name,
+        use_sentence_transformer_vectorizer,
+        trust_remote_code,
+    )
     vec = Vectorizer(
         model_dir,
         cuda_support,
@@ -96,6 +111,7 @@ def startup_event():
         onnx_runtime,
         use_sentence_transformer_vectorizer,
         model_name,
+        trust_remote_code,
     )
 
 
@@ -112,7 +128,7 @@ def meta():
 
 @app.post("/vectors")
 @app.post("/vectors/")
-async def read_item(item: VectorInput, response: Response):
+async def vectorize(item: VectorInput, response: Response):
     try:
         vector = await vec.vectorize(item.text, item.config)
         return {"text": item.text, "vector": vector.tolist(), "dim": len(vector)}

@@ -140,6 +140,7 @@ jobs:
       MODEL_TAG_NAME: ${{matrix.model_tag_name}}
       ONNX_RUNTIME: ${{matrix.onnx_runtime}}
       USE_SENTENCE_TRANSFORMERS_VECTORIZER: ${{matrix.use_sentence_transformers_vectorizer}}
+      TRUST_REMOTE_CODE: ${{matrix.trust_remote_code}}
     steps:
       - uses: actions/checkout@v3
       - uses: actions/setup-python@v4

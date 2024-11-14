@@ -1,22 +1,25 @@
+import json
+import os
 from transformers import AutoConfig
-
-from config import TRUST_REMOTE_CODE
 
 
 class Meta:
-    config: AutoConfig
-
     def __init__(
         self,
         model_path: str,
         model_name: str,
         use_sentence_transformer_vectorizer: bool,
+        trust_remote_code: bool,
     ):
         if use_sentence_transformer_vectorizer:
-            self.config = {"model_name": model_name, "model_type": None}
+            if os.path.exists(f"{model_path}/model_config"):
+                with open(f"{model_path}/model_config", "r") as f:
+                    self.config = json.loads(f.read())
+            else:
+                self.config = {"model_name": model_name, "model_type": None}
         else:
             self.config = AutoConfig.from_pretrained(
-                model_path, trust_remote_code=TRUST_REMOTE_CODE
+                model_path, trust_remote_code=trust_remote_code
             ).to_dict()
 
     def get(self):

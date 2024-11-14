@@ -37,9 +37,15 @@ class SmokeTest(unittest.TestCase):
         self.assertIsInstance(res.json(), dict)
 
     def test_vectorizing(self):
-        def try_to_vectorize(url):
-            print(f"url: {url}")
+        def get_req_body(task_type: str = ""):
             req_body = {"text": "The London Eye is a ferris wheel at the River Thames."}
+            if task_type != "":
+                req_body["config"] = {"task_type": task_type}
+            return req_body
+
+        def try_to_vectorize(url, task_type: str = ""):
+            print(f"url: {url}")
+            req_body = get_req_body(task_type)
 
             res = requests.post(url, json=req_body)
             resBody = res.json()
