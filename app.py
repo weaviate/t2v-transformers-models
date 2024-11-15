@@ -1,22 +1,37 @@
 import os
+from typing import Optional, List
 from logging import getLogger
-from fastapi import FastAPI, Response, status
+from fastapi import FastAPI, Depends, Response, status
+from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from typing import Union
-from config import TRUST_REMOTE_CODE
+from config import TRUST_REMOTE_CODE, get_allowed_tokens
 from vectorizer import Vectorizer, VectorInput
 from meta import Meta
 
 
-app = FastAPI()
-vec: Vectorizer
-meta_config: Meta
 logger = getLogger("uvicorn")
 
+vec: Vectorizer
+meta_config: Meta
 
-@app.on_event("startup")
-def startup_event():
+get_bearer_token = HTTPBearer(auto_error=False)
+allowed_tokens: List[str] = None
+
+
+def is_authorized(auth: Optional[HTTPAuthorizationCredentials]) -> bool:
+    if allowed_tokens is not None and (
+        auth is None or auth.credentials not in allowed_tokens
+    ):
+        return False
+    return True
+
+
+async def lifespan(app: FastAPI):
     global vec
     global meta_config
+    global allowed_tokens
+
+    allowed_tokens = get_allowed_tokens()
 
     cuda_env = os.getenv("ENABLE_CUDA")
     cuda_per_process_memory_fraction = 1.0
@@ -113,6 +128,10 @@ def startup_event():
         model_name,
         trust_remote_code,
     )
+    yield
+
+
+app = FastAPI(lifespan=lifespan)
 
 
 @app.get("/.well-known/live", response_class=Response)
@@ -122,17 +141,32 @@ async def live_and_ready(response: Response):
 
 
 @app.get("/meta")
-def meta():
-    return meta_config.get()
+def meta(
+    response: Response,
+    auth: Optional[HTTPAuthorizationCredentials] = Depends(get_bearer_token),
+):
+    if is_authorized(auth):
+        return meta_config.get()
+    else:
+        response.status_code = status.HTTP_401_UNAUTHORIZED
+        return {"error": "Unauthorized"}
 
 
 @app.post("/vectors")
 @app.post("/vectors/")
-async def vectorize(item: VectorInput, response: Response):
-    try:
-        vector = await vec.vectorize(item.text, item.config)
-        return {"text": item.text, "vector": vector.tolist(), "dim": len(vector)}
-    except Exception as e:
-        logger.exception("Something went wrong while vectorizing data.")
-        response.status_code = status.HTTP_500_INTERNAL_SERVER_ERROR
-        return {"error": str(e)}
+async def vectorize(
+    item: VectorInput,
+    response: Response,
+    auth: Optional[HTTPAuthorizationCredentials] = Depends(get_bearer_token),
+):
+    if is_authorized(auth):
+        try:
+            vector = await vec.vectorize(item.text, item.config)
+            return {"text": item.text, "vector": vector.tolist(), "dim": len(vector)}
+        except Exception as e:
+            logger.exception("Something went wrong while vectorizing data.")
+            response.status_code = status.HTTP_500_INTERNAL_SERVER_ERROR
+            return {"error": str(e)}
+    else:
+        response.status_code = status.HTTP_401_UNAUTHORIZED
+        return {"error": "Unauthorized"}
