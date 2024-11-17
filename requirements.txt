@@ -1,12 +1,5 @@
-transformers==4.44.2
 fastapi==0.115.0
 uvicorn==0.31.0
-nltk==3.9.1
-torch==2.4.1
-sentencepiece==0.2.0
-sentence-transformers==3.1.1
-optimum==1.22.0
-onnxruntime==1.19.2
-onnx==1.17.0
+transformers==4.44.2
 numpy==1.26.4
-einops==0.8.0
+
