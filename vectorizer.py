@@ -29,7 +29,7 @@ DEFAULT_POOL_METHOD = "masked_mean"
 
 class VectorInputConfig(BaseModel):
     pooling_strategy: Optional[str] = None
-    task_type: Optional[str] = None
+    task: Optional[str] = None # can be either query or passage
 
 
 class VectorInput(BaseModel):
@@ -110,6 +110,8 @@ class SentenceTransformerVectorizer:
             device=self.get_device(),
             convert_to_tensor=False,
             convert_to_numpy=True,
+            prompt_name=config.task,
+            task=config.task,
         )
         return embedding[0]
 

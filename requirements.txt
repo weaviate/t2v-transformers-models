@@ -10,3 +10,4 @@ onnxruntime==1.19.2
 onnx==1.17.0
 numpy==1.26.4
 einops==0.8.0
+xformers==0.0.28.post3

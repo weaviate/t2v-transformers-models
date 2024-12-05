@@ -63,15 +63,15 @@ class SmokeTest(unittest.TestCase):
         self.assertEqual(res.json()["error"], "Unauthorized")
 
     def test_vectorizing(self):
-        def get_req_body(task_type: str = ""):
+        def get_req_body(task: str = ""):
             req_body = {"text": "The London Eye is a ferris wheel at the River Thames."}
-            if task_type != "":
-                req_body["config"] = {"task_type": task_type}
+            if task != "":
+                req_body["config"] = {"task": task}
             return req_body
 
-        def try_to_vectorize(url, task_type: str = ""):
+        def try_to_vectorize(url, task: str = ""):
             print(f"url: {url}")
-            req_body = get_req_body(task_type)
+            req_body = get_req_body(task)
 
             headers = {"Authorization": "Bearer token2"}
             res = requests.post(url, json=req_body, headers=headers)
