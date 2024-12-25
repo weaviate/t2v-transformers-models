@@ -11,6 +11,7 @@ class Meta:
         use_sentence_transformer_vectorizer: bool,
         trust_remote_code: bool,
     ):
+        self.model_path = model_path
         if use_sentence_transformer_vectorizer:
             if os.path.exists(f"{model_path}/model_config"):
                 with open(f"{model_path}/model_config", "r") as f:
@@ -23,7 +24,11 @@ class Meta:
             ).to_dict()
 
     def get(self):
-        return {"model": self.config}
+        return {"model": self.config,
+                "model_path": self.model_path,
+        }
+    
+    
 
     def get_model_type(self):
         return self.config["model_type"]
