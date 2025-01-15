@@ -2,7 +2,8 @@ import asyncio
 import math
 from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
-from typing import Optional
+from typing import Optional, Any, Literal
+from logging import getLogger, Logger
 
 import nltk
 import torch
@@ -50,7 +51,8 @@ class Vectorizer:
         architecture: str,
         direct_tokenize: bool,
         onnx_runtime: bool,
-        use_sentence_transformer_vectorizer: bool,
+        use_sentence_transformers_vectorizer: bool,
+        use_sentence_transformers_multi_process: bool,
         model_name: str,
         trust_remote_code: bool,
     ):
@@ -58,9 +60,13 @@ class Vectorizer:
         if onnx_runtime:
             self.vectorizer = ONNXVectorizer(model_path, trust_remote_code)
         else:
-            if model_type == "t5" or use_sentence_transformer_vectorizer:
+            if model_type == "t5" or use_sentence_transformers_vectorizer:
                 self.vectorizer = SentenceTransformerVectorizer(
-                    model_path, model_name, cuda_core, trust_remote_code
+                    model_path,
+                    model_name,
+                    cuda_core,
+                    trust_remote_code,
+                    use_sentence_transformers_multi_process,
                 )
             else:
                 self.vectorizer = HuggingFaceVectorizer(
@@ -83,13 +89,25 @@ class Vectorizer:
 class SentenceTransformerVectorizer:
     model: SentenceTransformer
     cuda_core: str
+    use_sentence_transformers_multi_process: bool
+    pool: dict[Literal["input", "output", "processes"], Any]
+    logger: Logger
 
     def __init__(
-        self, model_path: str, model_name: str, cuda_core: str, trust_remote_code: bool
+        self,
+        model_path: str,
+        model_name: str,
+        cuda_core: str,
+        trust_remote_code: bool,
+        use_sentence_transformers_multi_process: bool,
     ):
+        self.logger = getLogger("uvicorn")
         self.cuda_core = cuda_core
-        print(
-            f"model_name={model_name}, cache_folder={model_path} device:{self.get_device()} trust_remote_code:{trust_remote_code}"
+        self.use_sentence_transformers_multi_process = (
+            use_sentence_transformers_multi_process
+        )
+        self.logger.info(
+            f"Sentence transformer vectorizer running with model_name={model_name}, cache_folder={model_path} device:{self.get_device()} trust_remote_code:{trust_remote_code} use_sentence_transformers_multi_process: {self.use_sentence_transformers_multi_process}"
         )
         self.model = SentenceTransformer(
             model_name,
@@ -98,18 +116,37 @@ class SentenceTransformerVectorizer:
             trust_remote_code=trust_remote_code,
         )
         self.model.eval()  # make sure we're in inference mode, not training
+        if self.use_sentence_transformers_multi_process:
+            self.pool = self.model.start_multi_process_pool()
+            self.logger.info(
+                "Sentence transformer vectorizer is set to use all available devices"
+            )
+            self.logger.info(
+                f"Created pool of {len(self.pool['processes'])} available {'CUDA' if torch.cuda.is_available() else 'CPU'} devices"
+            )
 
     def get_device(self) -> Optional[str]:
-        if self.cuda_core is not None and self.cuda_core != "":
+        if (
+            not self.use_sentence_transformers_multi_process
+            and self.cuda_core is not None
+            and self.cuda_core != ""
+        ):
             return self.cuda_core
         return None
 
     def vectorize(self, text: str, config: VectorInputConfig):
+        if self.use_sentence_transformers_multi_process:
+            embedding = self.model.encode_multi_process(
+                [text], pool=self.pool, normalize_embeddings=True
+            )
+            return embedding[0]
+
         embedding = self.model.encode(
             [text],
             device=self.get_device(),
             convert_to_tensor=False,
             convert_to_numpy=True,
+            normalize_embeddings=True,
         )
         return embedding[0]
 
