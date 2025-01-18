@@ -33,6 +33,7 @@ jobs:
           - model_name: sentence-transformers/all-mpnet-base-v2
             model_tag_name: sentence-transformers-all-mpnet-base-v2
             onnx_runtime: false
+            use_sentence_transformers_vectorizer: true
           - model_name: sentence-transformers/all-MiniLM-L12-v2
             model_tag_name: sentence-transformers-all-MiniLM-L12-v2
             onnx_runtime: false

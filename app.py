@@ -4,7 +4,12 @@ from logging import getLogger
 from fastapi import FastAPI, Depends, Response, status
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from typing import Union
-from config import TRUST_REMOTE_CODE, get_allowed_tokens
+from config import (
+    TRUST_REMOTE_CODE,
+    get_allowed_tokens,
+    get_use_sentence_transformers_multi_process,
+    get_t2v_transformers_direct_tokenize,
+)
 from vectorizer import Vectorizer, VectorInput
 from meta import Meta
 
@@ -32,43 +37,6 @@ async def lifespan(app: FastAPI):
     global allowed_tokens
 
     allowed_tokens = get_allowed_tokens()
-
-    cuda_env = os.getenv("ENABLE_CUDA")
-    cuda_per_process_memory_fraction = 1.0
-    if "CUDA_PER_PROCESS_MEMORY_FRACTION" in os.environ:
-        try:
-            cuda_per_process_memory_fraction = float(
-                os.getenv("CUDA_PER_PROCESS_MEMORY_FRACTION")
-            )
-        except ValueError:
-            logger.error(
-                f"Invalid CUDA_PER_PROCESS_MEMORY_FRACTION (should be between 0.0-1.0)"
-            )
-    if 0.0 <= cuda_per_process_memory_fraction <= 1.0:
-        logger.info(
-            f"CUDA_PER_PROCESS_MEMORY_FRACTION set to {cuda_per_process_memory_fraction}"
-        )
-    cuda_support = False
-    cuda_core = ""
-
-    if cuda_env is not None and cuda_env == "true" or cuda_env == "1":
-        cuda_support = True
-        cuda_core = os.getenv("CUDA_CORE")
-        if cuda_core is None or cuda_core == "":
-            cuda_core = "cuda:0"
-        logger.info(f"CUDA_CORE set to {cuda_core}")
-    else:
-        logger.info("Running on CPU")
-
-    # Batch text tokenization enabled by default
-    direct_tokenize = False
-    transformers_direct_tokenize = os.getenv("T2V_TRANSFORMERS_DIRECT_TOKENIZE")
-    if (
-        transformers_direct_tokenize is not None
-        and transformers_direct_tokenize == "true"
-        or transformers_direct_tokenize == "1"
-    ):
-        direct_tokenize = True
 
     model_dir = "./models/model"
 
@@ -104,15 +72,51 @@ async def lifespan(app: FastAPI):
                 f"Running ONNX vectorizer with quantized model for {onnx_quantization_info}"
             )
 
-    model_name, use_sentence_transformer_vectorizer = get_model_name()
+    model_name, use_sentence_transformers_vectorizer = get_model_name()
     onnx_runtime = get_onnx_runtime()
     trust_remote_code = get_trust_remote_code()
+
+    cuda_env = os.getenv("ENABLE_CUDA")
+    cuda_per_process_memory_fraction = 1.0
+    if "CUDA_PER_PROCESS_MEMORY_FRACTION" in os.environ:
+        try:
+            cuda_per_process_memory_fraction = float(
+                os.getenv("CUDA_PER_PROCESS_MEMORY_FRACTION")
+            )
+        except ValueError:
+            logger.error(
+                f"Invalid CUDA_PER_PROCESS_MEMORY_FRACTION (should be between 0.0-1.0)"
+            )
+    if 0.0 <= cuda_per_process_memory_fraction <= 1.0:
+        logger.info(
+            f"CUDA_PER_PROCESS_MEMORY_FRACTION set to {cuda_per_process_memory_fraction}"
+        )
+    cuda_support = False
+    cuda_core = ""
+
+    if cuda_env is not None and cuda_env == "true" or cuda_env == "1":
+        cuda_support = True
+        cuda_core = os.getenv("CUDA_CORE")
+        if cuda_core is None or cuda_core == "":
+            cuda_core = "cuda:0"
+        logger.info(f"CUDA_CORE set to {cuda_core}")
+    else:
+        logger.info("Running on CPU")
+
+    # Use all available cores
+    use_sentence_transformers_multi_process = (
+        get_use_sentence_transformers_multi_process()
+    )
+
+    # Batch text tokenization enabled by default
+    direct_tokenize = get_t2v_transformers_direct_tokenize()
+
     log_info_about_onnx(onnx_runtime)
 
     meta_config = Meta(
         model_dir,
         model_name,
-        use_sentence_transformer_vectorizer,
+        use_sentence_transformers_vectorizer,
         trust_remote_code,
     )
     vec = Vectorizer(
@@ -124,7 +128,8 @@ async def lifespan(app: FastAPI):
         meta_config.get_architecture(),
         direct_tokenize,
         onnx_runtime,
-        use_sentence_transformer_vectorizer,
+        use_sentence_transformers_vectorizer,
+        use_sentence_transformers_multi_process,
         model_name,
         trust_remote_code,
     )
