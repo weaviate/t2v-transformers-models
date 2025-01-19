@@ -2,7 +2,7 @@ import asyncio
 import math
 from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
-from typing import Optional, Any, Literal
+from typing import Optional, Any, Literal, List
 from logging import getLogger, Logger
 
 import nltk
@@ -55,6 +55,7 @@ class Vectorizer:
         use_sentence_transformers_multi_process: bool,
         model_name: str,
         trust_remote_code: bool,
+        workers: int | None,
     ):
         self.executor = ThreadPoolExecutor()
         if onnx_runtime:
@@ -67,6 +68,7 @@ class Vectorizer:
                     cuda_core,
                     trust_remote_code,
                     use_sentence_transformers_multi_process,
+                    workers,
                 )
             else:
                 self.vectorizer = HuggingFaceVectorizer(
@@ -80,14 +82,22 @@ class Vectorizer:
                     trust_remote_code,
                 )
 
-    async def vectorize(self, text: str, config: VectorInputConfig):
+    async def vectorize(self, text: str, config: VectorInputConfig, worker: int = 0):
+        if isinstance(self.vectorizer, SentenceTransformerVectorizer):
+            loop = asyncio.get_event_loop()
+            f = loop.run_in_executor(
+                self.executor, self.vectorizer.vectorize, text, config, worker
+            )
+            return await asyncio.wrap_future(f)
+
         return await asyncio.wrap_future(
             self.executor.submit(self.vectorizer.vectorize, text, config)
         )
 
 
 class SentenceTransformerVectorizer:
-    model: SentenceTransformer
+    workers: List[SentenceTransformer]
+    available_devices: List[str]
     cuda_core: str
     use_sentence_transformers_multi_process: bool
     pool: dict[Literal["input", "output", "processes"], Any]
@@ -100,24 +110,33 @@ class SentenceTransformerVectorizer:
         cuda_core: str,
         trust_remote_code: bool,
         use_sentence_transformers_multi_process: bool,
+        workers: int | None,
     ):
         self.logger = getLogger("uvicorn")
         self.cuda_core = cuda_core
         self.use_sentence_transformers_multi_process = (
             use_sentence_transformers_multi_process
         )
+        self.available_devices = self.get_devices(
+            workers, self.use_sentence_transformers_multi_process
+        )
         self.logger.info(
-            f"Sentence transformer vectorizer running with model_name={model_name}, cache_folder={model_path} device:{self.get_device()} trust_remote_code:{trust_remote_code} use_sentence_transformers_multi_process: {self.use_sentence_transformers_multi_process}"
+            f"Sentence transformer vectorizer running with model_name={model_name}, cache_folder={model_path} available_devices:{self.available_devices} trust_remote_code:{trust_remote_code} use_sentence_transformers_multi_process: {self.use_sentence_transformers_multi_process}"
         )
-        self.model = SentenceTransformer(
-            model_name,
-            cache_folder=model_path,
-            device=self.get_device(),
-            trust_remote_code=trust_remote_code,
-        )
-        self.model.eval()  # make sure we're in inference mode, not training
+        self.workers = []
+        for device in self.available_devices:
+            model = SentenceTransformer(
+                model_name,
+                cache_folder=model_path,
+                device=device,
+                trust_remote_code=trust_remote_code,
+            )
+            model.eval()  # make sure we're in inference mode, not training
+            self.workers.append(model)
+
+        print(f"have a list of {len(self.workers)}")
         if self.use_sentence_transformers_multi_process:
-            self.pool = self.model.start_multi_process_pool()
+            self.pool = self.workers[0].start_multi_process_pool()
             self.logger.info(
                 "Sentence transformer vectorizer is set to use all available devices"
             )
@@ -125,25 +144,34 @@ class SentenceTransformerVectorizer:
                 f"Created pool of {len(self.pool['processes'])} available {'CUDA' if torch.cuda.is_available() else 'CPU'} devices"
             )
 
-    def get_device(self) -> Optional[str]:
+    def get_devices(
+        self,
+        workers: int | None,
+        use_sentence_transformers_multi_process: bool,
+    ) -> List[str | None]:
         if (
             not self.use_sentence_transformers_multi_process
             and self.cuda_core is not None
             and self.cuda_core != ""
         ):
-            return self.cuda_core
-        return None
+            return self.cuda_core.split(",")
+        if use_sentence_transformers_multi_process or workers is None or workers < 1:
+            return [None]
+        return [None] * workers
 
-    def vectorize(self, text: str, config: VectorInputConfig):
+    def vectorize(self, text: str, config: VectorInputConfig, worker: int = 0):
         if self.use_sentence_transformers_multi_process:
-            embedding = self.model.encode_multi_process(
+            embedding = self.workers[0].encode_multi_process(
                 [text], pool=self.pool, normalize_embeddings=True
             )
             return embedding[0]
 
-        embedding = self.model.encode(
+        print(
+            f"trying to vectorize: worker {worker} using device: {self.available_devices[worker]} available: {len(self.available_devices)}"
+        )
+        embedding = self.workers[worker].encode(
             [text],
-            device=self.get_device(),
+            device=self.available_devices[worker],
             convert_to_tensor=False,
             convert_to_numpy=True,
             normalize_embeddings=True,
