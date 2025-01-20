@@ -117,6 +117,7 @@ async def lifespan(app: FastAPI):
         logger.info(f"CUDA_CORE set to {cuda_core}")
     else:
         logger.info("Running on CPU")
+        available_workers = 4
 
     # Use all available cores
     use_sentence_transformers_multi_process = (

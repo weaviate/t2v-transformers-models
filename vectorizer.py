@@ -1,6 +1,6 @@
 import asyncio
 import math
-from concurrent.futures import ThreadPoolExecutor
+from concurrent.futures import ThreadPoolExecutor, ProcessPoolExecutor
 from pathlib import Path
 from typing import Optional, Any, Literal, List
 from logging import getLogger, Logger
@@ -42,6 +42,7 @@ class VectorInput(BaseModel):
 
 class Vectorizer:
     executor: ThreadPoolExecutor
+    process_pool_executor: ProcessPoolExecutor
 
     def __init__(
         self,
@@ -60,6 +61,7 @@ class Vectorizer:
         workers: int | None,
     ):
         self.executor = ThreadPoolExecutor()
+        self.process_pool_executor = ProcessPoolExecutor()
         if onnx_runtime:
             self.vectorizer = ONNXVectorizer(model_path, trust_remote_code)
         else:
@@ -85,10 +87,11 @@ class Vectorizer:
                 )
 
     async def vectorize(self, text: str, config: VectorInputConfig, worker: int = 0):
-        if isinstance(self.vectorizer, SentenceTransformerVectorizer):
+        if isinstance(self.process_pool_executor, SentenceTransformerVectorizer):
+            print("---using process pool executor")
             loop = asyncio.get_event_loop()
             f = loop.run_in_executor(
-                self.executor, self.vectorizer.vectorize, text, config, worker
+                self.process_pool_executor, self.vectorizer.vectorize, text, config, worker
             )
             return await asyncio.wrap_future(f)
 
