@@ -1,5 +1,6 @@
 import os
 from typing import List
+from cachetools import TTLCache
 
 TRUST_REMOTE_CODE = os.getenv("TRUST_REMOTE_CODE", False)
 
@@ -31,3 +32,10 @@ def get_t2v_transformers_direct_tokenize():
     ):
         return True
     return False
+
+
+def get_cache_settings():
+    enable_cache = os.getenv("ENABLE_CACHE")
+    if enable_cache is not None and enable_cache == "true" or enable_cache == "1":
+        return TTLCache(maxsize=1024, ttl=600)
+    return None

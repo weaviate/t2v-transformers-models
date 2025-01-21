@@ -4,6 +4,7 @@ from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 from typing import Optional, Any, Literal, List
 from logging import getLogger, Logger
+from config import get_cache_settings
 
 import nltk
 import torch
@@ -20,6 +21,7 @@ from transformers import (
     T5ForConditionalGeneration,
     T5Tokenizer,
 )
+from cachetools import cached
 
 
 # limit transformer batch size to limit parallel inference, otherwise we run
@@ -159,6 +161,7 @@ class SentenceTransformerVectorizer:
             return [None]
         return [None] * workers
 
+    @cached(cache=get_cache_settings())
     def vectorize(self, text: str, config: VectorInputConfig, worker: int = 0):
         if self.use_sentence_transformers_multi_process:
             embedding = self.workers[0].encode_multi_process(
