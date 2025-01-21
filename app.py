@@ -12,6 +12,7 @@ from config import (
 )
 from vectorizer import Vectorizer, VectorInput
 from meta import Meta
+import torch
 
 
 logger = getLogger("uvicorn")
@@ -21,6 +22,8 @@ meta_config: Meta
 
 get_bearer_token = HTTPBearer(auto_error=False)
 allowed_tokens: List[str] = None
+current_worker = 0
+available_workers = 1
 
 
 def is_authorized(auth: Optional[HTTPAuthorizationCredentials]) -> bool:
@@ -31,10 +34,18 @@ def is_authorized(auth: Optional[HTTPAuthorizationCredentials]) -> bool:
     return True
 
 
+def get_worker():
+    global current_worker
+    worker = current_worker % available_workers
+    current_worker += 1
+    return worker
+
+
 async def lifespan(app: FastAPI):
     global vec
     global meta_config
     global allowed_tokens
+    global available_workers
 
     allowed_tokens = get_allowed_tokens()
 
@@ -98,7 +109,11 @@ async def lifespan(app: FastAPI):
         cuda_support = True
         cuda_core = os.getenv("CUDA_CORE")
         if cuda_core is None or cuda_core == "":
-            cuda_core = "cuda:0"
+            if use_sentence_transformers_vectorizer and torch.cuda.is_available():
+                available_workers = torch.cuda.device_count()
+                cuda_core = ",".join([f"cuda:{i}" for i in range(available_workers)])
+            else:
+                cuda_core = "cuda:0"
         logger.info(f"CUDA_CORE set to {cuda_core}")
     else:
         logger.info("Running on CPU")
@@ -132,6 +147,7 @@ async def lifespan(app: FastAPI):
         use_sentence_transformers_multi_process,
         model_name,
         trust_remote_code,
+        available_workers,
     )
     yield
 
@@ -166,7 +182,7 @@ async def vectorize(
 ):
     if is_authorized(auth):
         try:
-            vector = await vec.vectorize(item.text, item.config)
+            vector = await vec.vectorize(item.text, item.config, get_worker())
             return {"text": item.text, "vector": vector.tolist(), "dim": len(vector)}
         except Exception as e:
             logger.exception("Something went wrong while vectorizing data.")
