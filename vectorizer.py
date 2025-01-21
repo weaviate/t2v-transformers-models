@@ -123,7 +123,7 @@ class SentenceTransformerVectorizer:
             workers, self.use_sentence_transformers_multi_process
         )
         self.logger.info(
-            f"Sentence transformer vectorizer running with model_name={model_name}, cache_folder={model_path} available_devices:{self.available_devices} trust_remote_code:{trust_remote_code} use_sentence_transformers_multi_process: {self.use_sentence_transformers_multi_process}"
+            f"Sentence transformer vectorizer running with model_name={model_name}, cache_folder={model_path} trust_remote_code:{trust_remote_code}"
         )
         self.workers = []
         for device in self.available_devices:
@@ -136,15 +136,20 @@ class SentenceTransformerVectorizer:
             model.eval()  # make sure we're in inference mode, not training
             self.workers.append(model)
 
-        print(f"have a list of {len(self.workers)}")
         if self.use_sentence_transformers_multi_process:
-            self.pool = self.workers[0].start_multi_process_pool()
+            self.pool = self.workers[0].start_multi_process_pool(
+                target_devices=self.get_cuda_devices()
+            )
             self.logger.info(
                 "Sentence transformer vectorizer is set to use all available devices"
             )
             self.logger.info(
                 f"Created pool of {len(self.pool['processes'])} available {'CUDA' if torch.cuda.is_available() else 'CPU'} devices"
             )
+
+    def get_cuda_devices(self) -> List[str] | None:
+        if self.cuda_core is not None and self.cuda_core != "":
+            return self.cuda_core.split(",")
 
     def get_devices(
         self,
@@ -169,9 +174,6 @@ class SentenceTransformerVectorizer:
             )
             return embedding[0]
 
-        print(
-            f"trying to vectorize: worker {worker} using device: {self.available_devices[worker]} available: {len(self.available_devices)}"
-        )
         embedding = self.workers[worker].encode(
             [text],
             device=self.available_devices[worker],

@@ -35,10 +35,15 @@ def is_authorized(auth: Optional[HTTPAuthorizationCredentials]) -> bool:
 
 
 def get_worker():
-    global current_worker
-    worker = current_worker % available_workers
-    current_worker += 1
-    return worker
+    if available_workers == 1:
+        return 0
+    else:
+        global current_worker
+        if current_worker >= 1_000_000_000:
+            current_worker = 0
+        worker = current_worker % available_workers
+        current_worker += 1
+        return worker
 
 
 async def lifespan(app: FastAPI):
@@ -104,12 +109,16 @@ async def lifespan(app: FastAPI):
         )
     cuda_support = False
     cuda_core = ""
+    # Use all sentence transformers multi process
+    use_sentence_transformers_multi_process = (
+        get_use_sentence_transformers_multi_process()
+    )
 
     if cuda_env is not None and cuda_env == "true" or cuda_env == "1":
         cuda_support = True
         cuda_core = os.getenv("CUDA_CORE")
         if cuda_core is None or cuda_core == "":
-            if use_sentence_transformers_vectorizer and torch.cuda.is_available():
+            if use_sentence_transformers_vectorizer and use_sentence_transformers_multi_process and torch.cuda.is_available():
                 available_workers = torch.cuda.device_count()
                 cuda_core = ",".join([f"cuda:{i}" for i in range(available_workers)])
             else:
@@ -118,10 +127,7 @@ async def lifespan(app: FastAPI):
     else:
         logger.info("Running on CPU")
 
-    # Use all available cores
-    use_sentence_transformers_multi_process = (
-        get_use_sentence_transformers_multi_process()
-    )
+    
 
     # Batch text tokenization enabled by default
     direct_tokenize = get_t2v_transformers_direct_tokenize()
