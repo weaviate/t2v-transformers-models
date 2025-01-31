@@ -114,17 +114,26 @@ def download_model(model_name: str, model_dir: str, trust_remote_code: bool = Fa
     print(
         f"Downloading model {model_name} from huggingface model hub ({trust_remote_code=})"
     )
-    config = AutoConfig.from_pretrained(model_name, trust_remote_code=trust_remote_code)
-    model_type = config.to_dict()["model_type"]
+    try:
+        config = AutoConfig.from_pretrained(model_name, trust_remote_code=trust_remote_code)
+        config_dict = config.to_dict()
+        model_type = config.to_dict()["model_type"]
+    except ValueError as e:
+        # Check if this is the specific model2vec error
+        if "model type `model2vec`" in str(e):
+            config_dict = {"model_type": "model2vec"}
+            model_type = "model2vec"
+        else:
+            raise e
 
     if (
-        model_type is not None and model_type == "t5"
+        model_type is not None and (model_type == "t5" or model_type == "model2vec")
     ) or use_sentence_transformers_vectorizer.lower() == "true":
         SentenceTransformer(
             model_name, cache_folder=model_dir, trust_remote_code=trust_remote_code
         )
         save_model_name(model_name)
-        save_model_config(config.to_dict())
+        save_model_config(config_dict)
     else:
         if config.architectures and not force_automodel:
             print(f"Using class {config.architectures[0]} to load model weights")

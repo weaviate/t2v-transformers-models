@@ -82,7 +82,7 @@ class Vectorizer:
         if onnx_runtime:
             self.vectorizer = ONNXVectorizer(model_path, trust_remote_code)
         else:
-            if model_type == "t5" or use_sentence_transformers_vectorizer:
+            if model_type == "t5" or "model2vec" or use_sentence_transformers_vectorizer:
                 self.vectorizer = SentenceTransformerVectorizer(
                     model_path,
                     model_name,
