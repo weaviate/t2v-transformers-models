@@ -115,7 +115,9 @@ def download_model(model_name: str, model_dir: str, trust_remote_code: bool = Fa
         f"Downloading model {model_name} from huggingface model hub ({trust_remote_code=})"
     )
     try:
-        config = AutoConfig.from_pretrained(model_name, trust_remote_code=trust_remote_code)
+        config = AutoConfig.from_pretrained(
+            model_name, trust_remote_code=trust_remote_code
+        )
         config_dict = config.to_dict()
         model_type = config.to_dict()["model_type"]
     except ValueError as e:
