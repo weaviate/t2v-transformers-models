@@ -142,6 +142,11 @@ async def lifespan(app: FastAPI):
         use_sentence_transformers_vectorizer,
         trust_remote_code,
     )
+
+    if cuda_support is False and meta_config.get_model_type() == "model2vec":
+        # in case of CPU we need to run this model explicitly on CPU device, not MPS device
+        cuda_core = "cpu"
+
     vec = Vectorizer(
         model_dir,
         cuda_support,
