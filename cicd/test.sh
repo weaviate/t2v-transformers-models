@@ -14,6 +14,14 @@ python3 smoke_auth_test.py
 
 docker stop $container_id
 
+echo "Running tests with enabled cache"
+
+container_id=$(docker run -d -it -e ENABLE_CACHE='1' -p "8000:8080" "$local_repo")
+
+python3 smoke_validate_cache_test.py
+
+docker stop $container_id
+
 echo "Running tests without authorization"
 
 container_id=$(docker run -d -it -p "8000:8080" "$local_repo")

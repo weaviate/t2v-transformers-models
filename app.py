@@ -118,7 +118,11 @@ async def lifespan(app: FastAPI):
         cuda_support = True
         cuda_core = os.getenv("CUDA_CORE")
         if cuda_core is None or cuda_core == "":
-            if use_sentence_transformers_vectorizer and use_sentence_transformers_multi_process and torch.cuda.is_available():
+            if (
+                use_sentence_transformers_vectorizer
+                and use_sentence_transformers_multi_process
+                and torch.cuda.is_available()
+            ):
                 available_workers = torch.cuda.device_count()
                 cuda_core = ",".join([f"cuda:{i}" for i in range(available_workers)])
             else:
@@ -126,8 +130,6 @@ async def lifespan(app: FastAPI):
         logger.info(f"CUDA_CORE set to {cuda_core}")
     else:
         logger.info("Running on CPU")
-
-    
 
     # Batch text tokenization enabled by default
     direct_tokenize = get_t2v_transformers_direct_tokenize()

@@ -48,6 +48,17 @@ class SmokeTest(unittest.TestCase):
             self._try_to_vectorize(self.url + "/vectors/", sentence)
             self._try_to_vectorize(self.url + "/vectors", sentence)
 
+    def test_vectorize_payload_with_config(self):
+        weaviate_facts = [
+            "Vector database for semantic search.",
+            "Supports similarity-based queries.",
+            "Integrates with ML for classification.",
+        ]
+        for _ in range(10):
+            for fact in weaviate_facts:
+                self._try_to_vectorize(self.url + "/vectors/", fact, "query")
+                self._try_to_vectorize(self.url + "/vectors", fact, "passage")
+
     def test_vectorizing_cached_results(self):
         start = time.time()
         before = {}
