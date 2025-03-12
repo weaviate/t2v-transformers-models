@@ -33,6 +33,7 @@ jobs:
           - model_name: sentence-transformers/all-mpnet-base-v2
             model_tag_name: sentence-transformers-all-mpnet-base-v2
             onnx_runtime: false
+            use_sentence_transformers_vectorizer: true
           - model_name: sentence-transformers/all-MiniLM-L12-v2
             model_tag_name: sentence-transformers-all-MiniLM-L12-v2
             onnx_runtime: false
@@ -111,6 +112,18 @@ jobs:
             onnx_runtime: true
           - model_name: Snowflake/snowflake-arctic-embed-s
             model_tag_name: snowflake-snowflake-arctic-embed-s
+            onnx_runtime: false
+          - model_name: minishlab/potion-base-32M
+            model_tag_name: minishlab-potion-base-32M
+            use_sentence_transformers_vectorizer: true
+            onnx_runtime: false
+          - model_name: minishlab/potion-base-8M
+            model_tag_name: minishlab-potion-base-8M
+            use_sentence_transformers_vectorizer: true
+            onnx_runtime: false
+          - model_name: minishlab/potion-base-4M
+            model_tag_name: minishlab-potion-base-4M
+            use_sentence_transformers_vectorizer: true
             onnx_runtime: false
           - model_name: Snowflake/snowflake-arctic-embed-s
             model_tag_name: snowflake-snowflake-arctic-embed-s

@@ -2,7 +2,9 @@ import asyncio
 import math
 from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
-from typing import Optional
+from typing import Optional, Any, Literal, List
+from logging import getLogger, Logger
+from config import get_cache_settings
 
 import nltk
 import torch
@@ -19,6 +21,7 @@ from transformers import (
     T5ForConditionalGeneration,
     T5Tokenizer,
 )
+from cachetools import cached
 
 from config import ST_LOCAL_FILES_ONLY
 
@@ -33,10 +36,29 @@ class VectorInputConfig(BaseModel):
     pooling_strategy: Optional[str] = None
     task_type: Optional[str] = None
 
+    def __hash__(self):
+        return hash((self.pooling_strategy, self.task_type))
+
+    def __eq__(self, other):
+        if isinstance(other, VectorInputConfig):
+            return (
+                self.pooling_strategy == other.pooling_strategy
+                and self.task_type == other.task_type
+            )
+        return False
+
 
 class VectorInput(BaseModel):
     text: str
     config: Optional[VectorInputConfig] = None
+
+    def __hash__(self):
+        return hash((self.text, self.config))
+
+    def __eq__(self, other):
+        if isinstance(other, VectorInput):
+            return self.text == other.text and self.config == other.config
+        return False
 
 
 class Vectorizer:
@@ -52,17 +74,24 @@ class Vectorizer:
         architecture: str,
         direct_tokenize: bool,
         onnx_runtime: bool,
-        use_sentence_transformer_vectorizer: bool,
+        use_sentence_transformers_vectorizer: bool,
+        use_sentence_transformers_multi_process: bool,
         model_name: str,
         trust_remote_code: bool,
+        workers: int | None,
     ):
         self.executor = ThreadPoolExecutor()
         if onnx_runtime:
             self.vectorizer = ONNXVectorizer(model_path, trust_remote_code)
         else:
-            if model_type == "t5" or use_sentence_transformer_vectorizer:
+            if model_type == "t5" or use_sentence_transformers_vectorizer:
                 self.vectorizer = SentenceTransformerVectorizer(
-                    model_path, model_name, cuda_core, trust_remote_code
+                    model_path,
+                    model_name,
+                    cuda_core,
+                    trust_remote_code,
+                    use_sentence_transformers_multi_process,
+                    workers,
                 )
             else:
                 self.vectorizer = HuggingFaceVectorizer(
@@ -76,43 +105,103 @@ class Vectorizer:
                     trust_remote_code,
                 )
 
-    async def vectorize(self, text: str, config: VectorInputConfig):
+    async def vectorize(self, text: str, config: VectorInputConfig, worker: int = 0):
+        if isinstance(self.vectorizer, SentenceTransformerVectorizer):
+            loop = asyncio.get_event_loop()
+            f = loop.run_in_executor(
+                self.executor, self.vectorizer.vectorize, text, config, worker
+            )
+            return await asyncio.wrap_future(f)
+
         return await asyncio.wrap_future(
             self.executor.submit(self.vectorizer.vectorize, text, config)
         )
 
 
 class SentenceTransformerVectorizer:
-    model: SentenceTransformer
+    workers: List[SentenceTransformer]
+    available_devices: List[str]
     cuda_core: str
+    use_sentence_transformers_multi_process: bool
+    pool: dict[Literal["input", "output", "processes"], Any]
+    logger: Logger
 
     def __init__(
-        self, model_path: str, model_name: str, cuda_core: str, trust_remote_code: bool
+        self,
+        model_path: str,
+        model_name: str,
+        cuda_core: str,
+        trust_remote_code: bool,
+        use_sentence_transformers_multi_process: bool,
+        workers: int | None,
     ):
+        self.logger = getLogger("uvicorn")
         self.cuda_core = cuda_core
-        print(
-            f"model_name={model_name}, cache_folder={model_path} device:{self.get_device()} trust_remote_code:{trust_remote_code}"
+        self.use_sentence_transformers_multi_process = (
+            use_sentence_transformers_multi_process
         )
-        self.model = SentenceTransformer(
-            model_name,
-            cache_folder=model_path,
-            device=self.get_device(),
-            trust_remote_code=trust_remote_code,
-            local_files_only=ST_LOCAL_FILES_ONLY,
+        self.available_devices = self.get_devices(
+            workers, self.use_sentence_transformers_multi_process
         )
-        self.model.eval()  # make sure we're in inference mode, not training
+        self.logger.info(
+            f"Sentence transformer vectorizer running with model_name={model_name}, cache_folder={model_path} trust_remote_code:{trust_remote_code}"
+        )
+        self.workers = []
+        for device in self.available_devices:
+            model = SentenceTransformer(
+                model_name,
+                cache_folder=model_path,
+                device=device,
+                trust_remote_code=trust_remote_code,
+                local_files_only=ST_LOCAL_FILES_ONLY,
+            )
+            model.eval()  # make sure we're in inference mode, not training
+            self.workers.append(model)
 
-    def get_device(self) -> Optional[str]:
+        if self.use_sentence_transformers_multi_process:
+            self.pool = self.workers[0].start_multi_process_pool(
+                target_devices=self.get_cuda_devices()
+            )
+            self.logger.info(
+                "Sentence transformer vectorizer is set to use all available devices"
+            )
+            self.logger.info(
+                f"Created pool of {len(self.pool['processes'])} available {'CUDA' if torch.cuda.is_available() else 'CPU'} devices"
+            )
+
+    def get_cuda_devices(self) -> List[str] | None:
         if self.cuda_core is not None and self.cuda_core != "":
-            return self.cuda_core
-        return None
+            return self.cuda_core.split(",")
 
-    def vectorize(self, text: str, config: VectorInputConfig):
-        embedding = self.model.encode(
+    def get_devices(
+        self,
+        workers: int | None,
+        use_sentence_transformers_multi_process: bool,
+    ) -> List[str | None]:
+        if (
+            not self.use_sentence_transformers_multi_process
+            and self.cuda_core is not None
+            and self.cuda_core != ""
+        ):
+            return self.cuda_core.split(",")
+        if use_sentence_transformers_multi_process or workers is None or workers < 1:
+            return [None]
+        return [None] * workers
+
+    @cached(cache=get_cache_settings())
+    def vectorize(self, text: str, config: VectorInputConfig, worker: int = 0):
+        if self.use_sentence_transformers_multi_process:
+            embedding = self.workers[0].encode_multi_process(
+                [text], pool=self.pool, normalize_embeddings=True
+            )
+            return embedding[0]
+
+        embedding = self.workers[worker].encode(
             [text],
-            device=self.get_device(),
+            device=self.available_devices[worker],
             convert_to_tensor=False,
             convert_to_numpy=True,
+            normalize_embeddings=True,
         )
         return embedding[0]
 
@@ -261,6 +350,7 @@ class HuggingFaceVectorizer:
 
 
 class HFModel:
+
     def __init__(self, cuda_support: bool, cuda_core: str, trust_remote_code: bool):
         super().__init__()
         self.model = None
@@ -333,6 +423,7 @@ class HFModel:
 
 
 class DPRModel(HFModel):
+
     def __init__(
         self,
         architecture: str,
@@ -365,6 +456,7 @@ class DPRModel(HFModel):
 
 
 class T5Model(HFModel):
+
     def __init__(self, cuda_support: bool, cuda_core: str, trust_remote_code: bool):
         super().__init__(cuda_support, cuda_core)
         self.model = None
@@ -406,6 +498,7 @@ class T5Model(HFModel):
 
 
 class ModelFactory:
+
     @staticmethod
     def model(
         model_type,
