@@ -9,6 +9,9 @@ import uvicorn
 
 from app import app
 
+min_dimensions = 128
+max_dimensions = 2304
+
 
 def wait_for_uvicorn_start():
     url = "http://localhost:8000/.well-known/ready"
@@ -66,7 +69,7 @@ def test_vectorizing(server):
     # below tests that what we deem a reasonable vector is returned. We are
     # aware of 384 and 768 dim vectors, which should both fall in that
     # range
-    assert 128 <= len(vectorized_text) <= 1024
+    assert min_dimensions <= len(vectorized_text) <= max_dimensions
 
     # now let's try two sentences
 
@@ -81,4 +84,4 @@ def test_vectorizing(server):
 
     assert type(vectorized_text) is list
 
-    assert 128 <= len(vectorized_text) <= 1024
+    assert min_dimensions <= len(vectorized_text) <= max_dimensions

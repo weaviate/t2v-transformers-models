@@ -24,11 +24,10 @@ class Meta:
             ).to_dict()
 
     def get(self):
-        return {"model": self.config,
-                "model_path": self.model_path,
+        return {
+            "model": self.config,
+            "model_path": self.model_path,
         }
-    
-    
 
     def get_model_type(self):
         return self.config["model_type"]
