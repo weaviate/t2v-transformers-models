@@ -146,6 +146,18 @@ jobs:
           - model_name: Snowflake/snowflake-arctic-embed-m-v1.5
             model_tag_name: snowflake-snowflake-arctic-embed-m-v1.5
             onnx_runtime: true
+          - model_name: EuroBERT/EuroBERT-210m
+            model_tag_name: eurobert-eurobert-210m
+            trust_remote_code: true
+            onnx_runtime: false
+          - model_name: EuroBERT/EuroBERT-610m
+            model_tag_name: eurobert-eurobert-610m
+            trust_remote_code: true
+            onnx_runtime: false
+          - model_name: EuroBERT/EuroBERT-2.1B
+            model_tag_name: eurobert-eurobert-2.1b
+            trust_remote_code: true
+            onnx_runtime: false
     env:
       LOCAL_REPO: transformers-inference
       REMOTE_REPO: semitechnologies/transformers-inference

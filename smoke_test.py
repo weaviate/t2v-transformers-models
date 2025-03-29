@@ -61,7 +61,9 @@ class SmokeTest(unittest.TestCase):
             req_body["config"] = {"task_type": task_type}
         return req_body
 
-    def _try_to_vectorize(self, url: str, text: str, task_type: str = ""):
+    def _try_to_vectorize(
+        self, url: str, text: str, task_type: str = "", output_dims: bool = False
+    ):
         req_body = self._get_req_body(text, task_type)
 
         res = requests.post(url, json=req_body)
@@ -73,7 +75,8 @@ class SmokeTest(unittest.TestCase):
         # aware of 384 and 768 dim vectors, which should both fall in that
         # range
         self.assertTrue(len(resBody["vector"]) > 100)
-        # print(f"vector dimensions are: {len(resBody['vector'])}")
+        if output_dims:
+            print(f"vector dimensions are: {len(resBody['vector'])}")
 
     def test_well_known_ready(self):
         res = requests.get(self.url + "/.well-known/ready")
@@ -99,6 +102,7 @@ class SmokeTest(unittest.TestCase):
         self._try_to_vectorize(
             self.url + "/vectors",
             "The London Eye is a ferris wheel at the River Thames.",
+            output_dims=True,
         )
 
     def _test_vectorizing_sentences(self):
