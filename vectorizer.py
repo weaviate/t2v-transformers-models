@@ -23,6 +23,8 @@ from transformers import (
 )
 from cachetools import cached
 
+from config import ST_LOCAL_FILES_ONLY
+
 
 # limit transformer batch size to limit parallel inference, otherwise we run
 # into memory problems
@@ -151,6 +153,7 @@ class SentenceTransformerVectorizer:
                 cache_folder=model_path,
                 device=device,
                 trust_remote_code=trust_remote_code,
+                local_files_only=ST_LOCAL_FILES_ONLY,
             )
             model.eval()  # make sure we're in inference mode, not training
             self.workers.append(model)
