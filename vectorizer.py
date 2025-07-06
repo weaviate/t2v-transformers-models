@@ -75,6 +75,7 @@ class Vectorizer:
         use_sentence_transformers_vectorizer: bool,
         use_sentence_transformers_multi_process: bool,
         use_query_passage_prefixes: bool,
+        use_query_prompt: bool,
         model_name: str,
         trust_remote_code: bool,
         workers: int | None,
@@ -91,6 +92,7 @@ class Vectorizer:
                     cuda_core,
                     trust_remote_code,
                     use_sentence_transformers_multi_process,
+                    use_query_prompt,
                     workers,
                 )
             else:
@@ -139,6 +141,7 @@ class SentenceTransformerVectorizer:
     available_devices: List[str]
     cuda_core: str
     use_sentence_transformers_multi_process: bool
+    use_query_prompt: bool
     pool: dict[Literal["input", "output", "processes"], Any]
     logger: Logger
 
@@ -149,6 +152,7 @@ class SentenceTransformerVectorizer:
         cuda_core: str,
         trust_remote_code: bool,
         use_sentence_transformers_multi_process: bool,
+        use_query_prompt: bool,
         workers: int | None,
     ):
         self.logger = getLogger("uvicorn")
@@ -156,6 +160,7 @@ class SentenceTransformerVectorizer:
         self.use_sentence_transformers_multi_process = (
             use_sentence_transformers_multi_process
         )
+        self.use_query_prompt = use_query_prompt
         self.available_devices = self.get_devices(
             workers, self.use_sentence_transformers_multi_process
         )
@@ -203,11 +208,23 @@ class SentenceTransformerVectorizer:
             return [None]
         return [None] * workers
 
+    def get_prompt_name(self, config: VectorInputConfig) -> str | None:
+        if (
+            self.use_query_prompt
+            and config is not None
+            and config.task_type is not None
+            and config.task_type == "query"
+        ):
+            return config.task_type
+
     @cached(cache=get_cache_settings())
     def vectorize(self, text: str, config: VectorInputConfig, worker: int = 0):
         if self.use_sentence_transformers_multi_process:
-            embedding = self.workers[0].encode_multi_process(
-                [text], pool=self.pool, normalize_embeddings=True
+            embedding = self.workers[0].encode(
+                [text],
+                pool=self.pool,
+                normalize_embeddings=True,
+                prompt_name=self.get_prompt_name(config),
             )
             return embedding[0]
 
@@ -216,6 +233,7 @@ class SentenceTransformerVectorizer:
             device=self.available_devices[worker],
             convert_to_tensor=False,
             convert_to_numpy=True,
+            prompt_name=self.get_prompt_name(config),
             normalize_embeddings=True,
         )
         return embedding[0]

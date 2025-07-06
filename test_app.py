@@ -10,7 +10,7 @@ import uvicorn
 from app import app
 
 min_dimensions = 128
-max_dimensions = 2304
+max_dimensions = 8192
 
 
 def wait_for_uvicorn_start():

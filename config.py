@@ -4,6 +4,7 @@ from cachetools import TTLCache
 
 TRUST_REMOTE_CODE = os.getenv("TRUST_REMOTE_CODE", False)
 USE_QUERY_PASSAGE_PREFIXES = os.getenv("USE_QUERY_PASSAGE_PREFIXES", False)
+USE_QUERY_PROMPT = os.getenv("USE_QUERY_PROMPT", False)
 
 
 def get_allowed_tokens() -> List[str] | None:
