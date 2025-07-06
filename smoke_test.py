@@ -3,6 +3,7 @@ import unittest
 import requests
 import threading
 import time
+import random
 
 sentences = [
     "Python is easy to learn.",
@@ -105,10 +106,10 @@ class SmokeTest(unittest.TestCase):
             output_dims=True,
         )
 
-    def _test_vectorizing_sentences(self):
+    def _test_vectorizing_sentences(self, task_type: str = ""):
         for sentence in sentences:
-            self._try_to_vectorize(self.url + "/vectors/", sentence)
-            self._try_to_vectorize(self.url + "/vectors", sentence)
+            self._try_to_vectorize(self.url + "/vectors/", sentence, task_type)
+            self._try_to_vectorize(self.url + "/vectors", sentence, task_type)
 
     def test_vectorizing_sentences_parallel(self):
         start = time.time()
@@ -128,6 +129,35 @@ class SmokeTest(unittest.TestCase):
             self._test_vectorizing_sentences()
         end = time.time()
         print(f"test_vectorizing_sentences took: {end - start}s")
+
+    def test_vectorizing_sentences_with_task_type_parallel(self):
+        start = time.time()
+        threads = []
+        for _ in range(10):
+            t = threading.Thread(
+                target=self._test_vectorizing_sentences(
+                    task_type=random.choice(["query", "passage"])
+                )
+            )
+            threads.append(t)
+            t.start()
+        for t in threads:
+            t.join()
+        end = time.time()
+        print(f"test_vectorizing_sentences_parallel took: {end - start}s")
+
+    def test_vectorizing_with_task_type(self):
+        self._try_to_vectorize(
+            self.url + "/vectors/",
+            "The London Eye is a ferris wheel at the River Thames.",
+            "passage",
+        )
+        self._try_to_vectorize(
+            self.url + "/vectors",
+            "The London Eye is a ferris wheel at the River Thames.",
+            "query",
+            output_dims=True,
+        )
 
 
 if __name__ == "__main__":

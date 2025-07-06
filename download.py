@@ -21,6 +21,7 @@ nltk_dir = "./nltk_data"
 model_name = os.getenv("MODEL_NAME", None)
 force_automodel = os.getenv("FORCE_AUTOMODEL", False)
 trust_remote_code = os.getenv("TRUST_REMOTE_CODE", False)
+use_query_passage_prefixes = os.getenv("USE_QUERY_PASSAGE_PREFIXES", False)
 if not model_name:
     print("Fatal: MODEL_NAME is required")
     print(
@@ -107,6 +108,10 @@ def download_model(model_name: str, model_dir: str, trust_remote_code: bool = Fa
         with open(f"{model_dir}/trust_remote_code", "w") as f:
             f.write(f"{trust_remote_code}")
 
+    def save_use_query_passage_prefixes(use_query_passage_prefixes: bool):
+        with open(f"{model_dir}/use_query_passage_prefixes", "w") as f:
+            f.write(f"{use_query_passage_prefixes}")
+
     def save_model_config(model_config):
         with open(f"{model_dir}/model_config", "w") as f:
             f.write(json.dumps(model_config))
@@ -163,6 +168,7 @@ def download_model(model_name: str, model_dir: str, trust_remote_code: bool = Fa
         tokenizer.save_pretrained(model_dir)
 
     save_trust_remote_code(trust_remote_code)
+    save_use_query_passage_prefixes(use_query_passage_prefixes)
 
     nltk.download("punkt", download_dir=nltk_dir)
     nltk.download("punkt_tab", download_dir=nltk_dir)

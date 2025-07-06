@@ -3,6 +3,7 @@ from typing import List
 from cachetools import TTLCache
 
 TRUST_REMOTE_CODE = os.getenv("TRUST_REMOTE_CODE", False)
+USE_QUERY_PASSAGE_PREFIXES = os.getenv("USE_QUERY_PASSAGE_PREFIXES", False)
 
 
 def get_allowed_tokens() -> List[str] | None:

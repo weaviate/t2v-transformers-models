@@ -74,11 +74,13 @@ class Vectorizer:
         onnx_runtime: bool,
         use_sentence_transformers_vectorizer: bool,
         use_sentence_transformers_multi_process: bool,
+        use_query_passage_prefixes: bool,
         model_name: str,
         trust_remote_code: bool,
         workers: int | None,
     ):
         self.executor = ThreadPoolExecutor()
+        self.use_query_passage_prefixes = use_query_passage_prefixes
         if onnx_runtime:
             self.vectorizer = ONNXVectorizer(model_path, trust_remote_code)
         else:
@@ -103,16 +105,32 @@ class Vectorizer:
                     trust_remote_code,
                 )
 
+    def get_text(self, text: str, config: VectorInputConfig) -> str:
+        if (
+            self.use_query_passage_prefixes
+            and config is not None
+            and config.task_type is not None
+        ):
+            return f"{config.task_type}: {text}"
+        else:
+            return text
+
     async def vectorize(self, text: str, config: VectorInputConfig, worker: int = 0):
         if isinstance(self.vectorizer, SentenceTransformerVectorizer):
             loop = asyncio.get_event_loop()
             f = loop.run_in_executor(
-                self.executor, self.vectorizer.vectorize, text, config, worker
+                self.executor,
+                self.vectorizer.vectorize,
+                self.get_text(text, config),
+                config,
+                worker,
             )
             return await asyncio.wrap_future(f)
 
         return await asyncio.wrap_future(
-            self.executor.submit(self.vectorizer.vectorize, text, config)
+            self.executor.submit(
+                self.vectorizer.vectorize, self.get_text(text, config), config
+            )
         )
 
 
