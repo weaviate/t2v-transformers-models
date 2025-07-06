@@ -6,6 +6,7 @@ from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from typing import Union
 from config import (
     TRUST_REMOTE_CODE,
+    USE_QUERY_PASSAGE_PREFIXES,
     get_allowed_tokens,
     get_use_sentence_transformers_multi_process,
     get_t2v_transformers_direct_tokenize,
@@ -78,6 +79,13 @@ async def lifespan(app: FastAPI):
                 return trust_remote_code == "true"
         return TRUST_REMOTE_CODE
 
+    def get_use_query_passage_prefixes() -> bool:
+        if os.path.exists(f"{model_dir}/use_query_passage_prefixes"):
+            with open(f"{model_dir}/use_query_passage_prefixes", "r") as f:
+                use_query_passage_prefixes = f.read()
+                return use_query_passage_prefixes == "true"
+        return USE_QUERY_PASSAGE_PREFIXES
+
     def log_info_about_onnx(onnx_runtime: bool):
         if onnx_runtime:
             onnx_quantization_info = "missing"
@@ -91,6 +99,7 @@ async def lifespan(app: FastAPI):
     model_name, use_sentence_transformers_vectorizer = get_model_name()
     onnx_runtime = get_onnx_runtime()
     trust_remote_code = get_trust_remote_code()
+    use_query_passage_prefixes = get_use_query_passage_prefixes()
 
     cuda_env = os.getenv("ENABLE_CUDA")
     cuda_per_process_memory_fraction = 1.0
@@ -158,6 +167,7 @@ async def lifespan(app: FastAPI):
         onnx_runtime,
         use_sentence_transformers_vectorizer,
         use_sentence_transformers_multi_process,
+        use_query_passage_prefixes,
         model_name,
         trust_remote_code,
         available_workers,

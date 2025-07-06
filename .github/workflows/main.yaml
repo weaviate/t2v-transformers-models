@@ -158,6 +158,10 @@ jobs:
             model_tag_name: eurobert-eurobert-2.1b
             trust_remote_code: true
             onnx_runtime: false
+          - model_name: intfloat/multilingual-e5-large
+            model_tag_name: intfloat-multilingual-e5-large
+            use_sentence_transformers_vectorizer: true
+            use_query_passage_prefixes: true
     env:
       LOCAL_REPO: transformers-inference
       REMOTE_REPO: semitechnologies/transformers-inference
@@ -165,6 +169,7 @@ jobs:
       MODEL_TAG_NAME: ${{matrix.model_tag_name}}
       ONNX_RUNTIME: ${{matrix.onnx_runtime}}
       USE_SENTENCE_TRANSFORMERS_VECTORIZER: ${{matrix.use_sentence_transformers_vectorizer}}
+      USE_QUERY_PASSAGE_PREFIXES: ${{matrix.use_query_passage_prefixes}}
       TRUST_REMOTE_CODE: ${{matrix.trust_remote_code}}
     steps:
       - uses: actions/checkout@v3
