@@ -170,10 +170,6 @@ jobs:
             model_tag_name: qwen-qwen3-embedding-4b
             use_sentence_transformers_vectorizer: true
             use_query_prompt: true
-          - model_name: Qwen/Qwen3-Embedding-8B
-            model_tag_name: qwen-qwen3-embedding-8b
-            use_sentence_transformers_vectorizer: true
-            use_query_prompt: true
     env:
       LOCAL_REPO: transformers-inference
       REMOTE_REPO: semitechnologies/transformers-inference
