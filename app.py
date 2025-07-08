@@ -7,6 +7,7 @@ from typing import Union
 from config import (
     TRUST_REMOTE_CODE,
     USE_QUERY_PASSAGE_PREFIXES,
+    USE_QUERY_PROMPT,
     get_allowed_tokens,
     get_use_sentence_transformers_multi_process,
     get_t2v_transformers_direct_tokenize,
@@ -86,6 +87,13 @@ async def lifespan(app: FastAPI):
                 return use_query_passage_prefixes == "true"
         return USE_QUERY_PASSAGE_PREFIXES
 
+    def get_use_query_prompt() -> bool:
+        if os.path.exists(f"{model_dir}/use_query_prompt"):
+            with open(f"{model_dir}/use_query_prompt", "r") as f:
+                use_query_prompt = f.read()
+                return use_query_prompt == "true"
+        return USE_QUERY_PROMPT
+
     def log_info_about_onnx(onnx_runtime: bool):
         if onnx_runtime:
             onnx_quantization_info = "missing"
@@ -100,6 +108,7 @@ async def lifespan(app: FastAPI):
     onnx_runtime = get_onnx_runtime()
     trust_remote_code = get_trust_remote_code()
     use_query_passage_prefixes = get_use_query_passage_prefixes()
+    use_query_prompt = get_use_query_prompt()
 
     cuda_env = os.getenv("ENABLE_CUDA")
     cuda_per_process_memory_fraction = 1.0
@@ -168,6 +177,7 @@ async def lifespan(app: FastAPI):
         use_sentence_transformers_vectorizer,
         use_sentence_transformers_multi_process,
         use_query_passage_prefixes,
+        use_query_prompt,
         model_name,
         trust_remote_code,
         available_workers,

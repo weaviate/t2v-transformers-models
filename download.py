@@ -22,6 +22,7 @@ model_name = os.getenv("MODEL_NAME", None)
 force_automodel = os.getenv("FORCE_AUTOMODEL", False)
 trust_remote_code = os.getenv("TRUST_REMOTE_CODE", False)
 use_query_passage_prefixes = os.getenv("USE_QUERY_PASSAGE_PREFIXES", False)
+use_query_prompt = os.getenv("USE_QUERY_PROMPT", False)
 if not model_name:
     print("Fatal: MODEL_NAME is required")
     print(
@@ -55,7 +56,7 @@ def download_onnx_model(
     # Download model and tokenizer
     onnx_path = Path(model_dir)
     ort_model = ORTModelForFeatureExtraction.from_pretrained(
-        model_name, from_transformers=True, trust_remote_code=trust_remote_code
+        model_name, trust_remote_code=trust_remote_code
     )
     # Save model
     ort_model.save_pretrained(onnx_path)
@@ -111,6 +112,10 @@ def download_model(model_name: str, model_dir: str, trust_remote_code: bool = Fa
     def save_use_query_passage_prefixes(use_query_passage_prefixes: bool):
         with open(f"{model_dir}/use_query_passage_prefixes", "w") as f:
             f.write(f"{use_query_passage_prefixes}")
+
+    def save_use_query_prompt(use_query_prompt: bool):
+        with open(f"{model_dir}/use_query_prompt", "w") as f:
+            f.write(f"{use_query_prompt}")
 
     def save_model_config(model_config):
         with open(f"{model_dir}/model_config", "w") as f:
@@ -169,6 +174,7 @@ def download_model(model_name: str, model_dir: str, trust_remote_code: bool = Fa
 
     save_trust_remote_code(trust_remote_code)
     save_use_query_passage_prefixes(use_query_passage_prefixes)
+    save_use_query_prompt(use_query_prompt)
 
     nltk.download("punkt", download_dir=nltk_dir)
     nltk.download("punkt_tab", download_dir=nltk_dir)

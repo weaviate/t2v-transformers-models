@@ -10,6 +10,7 @@ onnx_runtime=${ONNX_RUNTIME?Variable ONNX_RUNTIME is required}
 trust_remote_code=${TRUST_REMOTE_CODE:-false}
 use_sentence_transformers_vectorizer=${USE_SENTENCE_TRANSFORMERS_VECTORIZER:-false}
 use_query_passage_prefixes=${USE_QUERY_PASSAGE_PREFIXES:-false}
+use_query_prompt=${USE_QUERY_PROMPT:-false}
 original_model_name=$model_name
 git_tag=$GITHUB_REF_NAME
 
@@ -53,6 +54,7 @@ function push_tag() {
       --build-arg "TRUST_REMOTE_CODE=$trust_remote_code" \
       --build-arg "USE_SENTENCE_TRANSFORMERS_VECTORIZER=$use_sentence_transformers_vectorizer" \
       --build-arg "USE_QUERY_PASSAGE_PREFIXES=$use_query_passage_prefixes" \
+      --build-arg "USE_QUERY_PROMPT=$use_query_prompt" \
       --push \
       --tag "$tag_git" \
       --tag "$tag_latest" \

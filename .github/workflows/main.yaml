@@ -162,6 +162,18 @@ jobs:
             model_tag_name: intfloat-multilingual-e5-large
             use_sentence_transformers_vectorizer: true
             use_query_passage_prefixes: true
+          - model_name: Qwen/Qwen3-Embedding-0.6B
+            model_tag_name: qwen-qwen3-embedding-0.6b
+            use_sentence_transformers_vectorizer: true
+            use_query_prompt: true
+          - model_name: Qwen/Qwen3-Embedding-4B
+            model_tag_name: qwen-qwen3-embedding-4b
+            use_sentence_transformers_vectorizer: true
+            use_query_prompt: true
+          - model_name: Qwen/Qwen3-Embedding-8B
+            model_tag_name: qwen-qwen3-embedding-8b
+            use_sentence_transformers_vectorizer: true
+            use_query_prompt: true
     env:
       LOCAL_REPO: transformers-inference
       REMOTE_REPO: semitechnologies/transformers-inference
@@ -170,6 +182,7 @@ jobs:
       ONNX_RUNTIME: ${{matrix.onnx_runtime}}
       USE_SENTENCE_TRANSFORMERS_VECTORIZER: ${{matrix.use_sentence_transformers_vectorizer}}
       USE_QUERY_PASSAGE_PREFIXES: ${{matrix.use_query_passage_prefixes}}
+      USE_QUERY_PROMPT: ${{matrix.use_query_prompt}}
       TRUST_REMOTE_CODE: ${{matrix.trust_remote_code}}
     steps:
       - uses: actions/checkout@v3
