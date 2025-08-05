@@ -56,16 +56,28 @@ class SmokeTest(unittest.TestCase):
 
         raise Exception("did not start up")
 
-    def _get_req_body(self, text: str, task_type: str = ""):
+    def _get_req_body(
+        self, text: str, task_type: str = "", dimensions: int | None = None
+    ):
         req_body = {"text": text}
-        if task_type != "":
-            req_body["config"] = {"task_type": task_type}
+        if task_type != "" or dimensions is not None:
+            config = {}
+            if task_type != "":
+                config["task_type"] = task_type
+            if dimensions is not None:
+                config["dimensions"] = dimensions
+            req_body["config"] = config
         return req_body
 
     def _try_to_vectorize(
-        self, url: str, text: str, task_type: str = "", output_dims: bool = False
+        self,
+        url: str,
+        text: str,
+        task_type: str = "",
+        dimensions: int | None = None,
+        output_dims: bool = False,
     ):
-        req_body = self._get_req_body(text, task_type)
+        req_body = self._get_req_body(text, task_type, dimensions)
 
         res = requests.post(url, json=req_body)
         resBody = res.json()
@@ -156,6 +168,22 @@ class SmokeTest(unittest.TestCase):
             self.url + "/vectors",
             "The London Eye is a ferris wheel at the River Thames.",
             "query",
+            output_dims=True,
+        )
+
+    def test_vectorizing_with_task_type_and_dimensions(self):
+        self._try_to_vectorize(
+            self.url + "/vectors/",
+            "The London Eye is a ferris wheel at the River Thames.",
+            "passage",
+            dimensions=256,
+            output_dims=True,
+        )
+        self._try_to_vectorize(
+            self.url + "/vectors",
+            "The London Eye is a ferris wheel at the River Thames.",
+            "query",
+            dimensions=128,
             output_dims=True,
         )
 

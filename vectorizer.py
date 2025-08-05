@@ -33,15 +33,17 @@ DEFAULT_POOL_METHOD = "masked_mean"
 class VectorInputConfig(BaseModel):
     pooling_strategy: Optional[str] = None
     task_type: Optional[str] = None
+    dimensions: Optional[int] = None
 
     def __hash__(self):
-        return hash((self.pooling_strategy, self.task_type))
+        return hash((self.pooling_strategy, self.task_type, self.dimensions))
 
     def __eq__(self, other):
         if isinstance(other, VectorInputConfig):
             return (
                 self.pooling_strategy == other.pooling_strategy
                 and self.task_type == other.task_type
+                and self.dimensions == other.dimensions
             )
         return False
 
@@ -217,6 +219,10 @@ class SentenceTransformerVectorizer:
         ):
             return config.task_type
 
+    def get_dimensions(self, config: VectorInputConfig) -> int | None:
+        if config is not None and config.dimensions is not None:
+            return config.dimensions
+
     @cached(cache=get_cache_settings())
     def vectorize(self, text: str, config: VectorInputConfig, worker: int = 0):
         if self.use_sentence_transformers_multi_process:
@@ -225,6 +231,7 @@ class SentenceTransformerVectorizer:
                 pool=self.pool,
                 normalize_embeddings=True,
                 prompt_name=self.get_prompt_name(config),
+                truncate_dim=self.get_dimensions(config),
             )
             return embedding[0]
 
@@ -235,6 +242,7 @@ class SentenceTransformerVectorizer:
             convert_to_numpy=True,
             prompt_name=self.get_prompt_name(config),
             normalize_embeddings=True,
+            truncate_dim=self.get_dimensions(config),
         )
         return embedding[0]
 
