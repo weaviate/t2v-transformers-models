@@ -3,3 +3,4 @@ models
 nltk_data
 .venv/
 .vscode/
+token.txt
