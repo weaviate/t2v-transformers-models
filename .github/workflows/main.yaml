@@ -170,6 +170,11 @@ jobs:
             model_tag_name: qwen-qwen3-embedding-4b
             use_sentence_transformers_vectorizer: true
             use_query_prompt: true
+          - model_name: google/embeddinggemma-300m
+            model_tag_name: google-gemma-3-300m-embedding
+            use_sentence_transformers_vectorizer: true
+            use_query_prompt: true
+            use_hf_auth_token: true
     env:
       LOCAL_REPO: transformers-inference
       REMOTE_REPO: semitechnologies/transformers-inference
@@ -180,6 +185,7 @@ jobs:
       USE_QUERY_PASSAGE_PREFIXES: ${{matrix.use_query_passage_prefixes}}
       USE_QUERY_PROMPT: ${{matrix.use_query_prompt}}
       TRUST_REMOTE_CODE: ${{matrix.trust_remote_code}}
+      USE_HF_AUTH_TOKEN: ${{matrix.use_hf_auth_token}}
     steps:
       - uses: actions/checkout@v3
       - uses: actions/setup-python@v4
@@ -193,9 +199,17 @@ jobs:
           username: ${{secrets.DOCKER_USERNAME}}
           password: ${{secrets.DOCKER_PASSWORD}}
       - name: Build and test
+        env:
+          HF_TOKEN: ${{secrets.HF_TOKEN}}
         run: |
+          if [ "$USE_HF_AUTH_TOKEN" = true ]; then
+            printf '%s' "$HF_TOKEN" > token.txt
+          fi
           cicd/build.sh
           cicd/test.sh
+          if [ "$USE_HF_AUTH_TOKEN" = true ]; then
+            rm -f token.txt
+          fi
       - name: Deploy
         if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags')
         env:
