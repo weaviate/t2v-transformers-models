@@ -223,28 +223,60 @@ class SentenceTransformerVectorizer:
         if config is not None and config.dimensions is not None:
             return config.dimensions
 
-    @cached(cache=get_cache_settings())
-    def vectorize(self, text: str, config: VectorInputConfig, worker: int = 0):
-        if self.use_sentence_transformers_multi_process:
-            embedding = self.workers[0].encode(
-                [text],
-                pool=self.pool,
-                normalize_embeddings=True,
-                prompt_name=self.get_prompt_name(config),
-                truncate_dim=self.get_dimensions(config),
-            )
-            return embedding[0]
+    def _is_query(self, config: VectorInputConfig) -> bool:
+        if (
+            config is not None
+            and config.task_type is not None
+            and config.task_type == "query"
+        ):
+            return True
+        else:
+            return False
 
-        embedding = self.workers[worker].encode(
+    def _get_worker(self, worker: int = 0) -> SentenceTransformer:
+        if self.use_sentence_transformers_multi_process:
+            return self.workers[0]
+        else:
+            return self.workers[worker]
+
+    def _get_pool(self) -> dict[Literal["input", "output", "processes"], Any] | None:
+        if self.use_sentence_transformers_multi_process:
+            return self.pool
+
+    def _get_device(self, worker: int = 0) -> str | None:
+        if not self.use_sentence_transformers_multi_process:
+            return self.available_devices[worker]
+
+    def _vectorize_query(self, text: str, config: VectorInputConfig, worker: int):
+        embedding = self._get_worker(worker).encode_query(
             [text],
-            device=self.available_devices[worker],
+            pool=self._get_pool(),
+            device=self._get_device(worker),
             convert_to_tensor=False,
             convert_to_numpy=True,
-            prompt_name=self.get_prompt_name(config),
             normalize_embeddings=True,
             truncate_dim=self.get_dimensions(config),
         )
         return embedding[0]
+
+    def _vectorize_document(self, text: str, config: VectorInputConfig, worker: int):
+        embedding = self._get_worker(worker).encode_document(
+            [text],
+            pool=self._get_pool(),
+            device=self._get_device(worker),
+            convert_to_tensor=False,
+            convert_to_numpy=True,
+            normalize_embeddings=True,
+            truncate_dim=self.get_dimensions(config),
+        )
+        return embedding[0]
+
+    @cached(cache=get_cache_settings())
+    def vectorize(self, text: str, config: VectorInputConfig, worker: int = 0):
+        if self._is_query(config):
+            return self._vectorize_query(text, config, worker)
+        else:
+            return self._vectorize_document(text, config, worker)
 
 
 class ONNXVectorizer:
