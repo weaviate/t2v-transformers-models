@@ -207,6 +207,7 @@ jobs:
           fi
           cicd/build.sh
           cicd/test.sh
+          cicd/docker_clean.sh
           if [ "$USE_HF_AUTH_TOKEN" = true ]; then
             rm -f token.txt
           fi
@@ -215,8 +216,15 @@ jobs:
         env:
           DOCKER_USERNAME: ${{secrets.DOCKER_USERNAME}}
           DOCKER_PASSWORD: ${{secrets.DOCKER_PASSWORD}}
+          HF_TOKEN: ${{secrets.HF_TOKEN}}
         run: |
+          if [ "$USE_HF_AUTH_TOKEN" = true ]; then
+            printf '%s' "$HF_TOKEN" > token.txt
+          fi
           cicd/docker_push.sh
+          if [ "$USE_HF_AUTH_TOKEN" = true ]; then
+            rm -f token.txt
+          fi
   build-custom-image:
     name: Build custom image
     runs-on: ubuntu-latest-8-cores
