@@ -27,3 +27,5 @@ echo "Running tests without authorization"
 container_id=$(docker run -d -it -p "8000:8080" "$local_repo")
 
 python3 smoke_test.py
+
+echo "All tests passed"

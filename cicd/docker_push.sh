@@ -13,6 +13,7 @@ use_query_passage_prefixes=${USE_QUERY_PASSAGE_PREFIXES:-false}
 use_query_prompt=${USE_QUERY_PROMPT:-false}
 original_model_name=$model_name
 git_tag=$GITHUB_REF_NAME
+use_hf_auth_token=${USE_HF_AUTH_TOKEN:-false}
 
 function main() {
   init
@@ -48,18 +49,34 @@ function push_tag() {
     tag="$remote_repo:$model_name_part"
 
     echo "Tag & Push $tag, $tag_latest, $tag_git"
-    docker buildx build --platform=linux/arm64,linux/amd64 \
-      --build-arg "MODEL_NAME=$original_model_name" \
-      --build-arg "ONNX_RUNTIME=$onnx_runtime" \
-      --build-arg "TRUST_REMOTE_CODE=$trust_remote_code" \
-      --build-arg "USE_SENTENCE_TRANSFORMERS_VECTORIZER=$use_sentence_transformers_vectorizer" \
-      --build-arg "USE_QUERY_PASSAGE_PREFIXES=$use_query_passage_prefixes" \
-      --build-arg "USE_QUERY_PROMPT=$use_query_prompt" \
-      --push \
-      --tag "$tag_git" \
-      --tag "$tag_latest" \
-      --tag "$tag" \
-      .
+    if [ "$use_hf_auth_token" = "true" ]; then
+      DOCKER_BUILDKIT=1 docker buildx build -f auth.Dockerfile --platform=linux/arm64,linux/amd64 \
+        --secret id=hf_token,src=token.txt \
+        --build-arg "MODEL_NAME=$original_model_name" \
+        --build-arg "ONNX_RUNTIME=$onnx_runtime" \
+        --build-arg "TRUST_REMOTE_CODE=$trust_remote_code" \
+        --build-arg "USE_SENTENCE_TRANSFORMERS_VECTORIZER=$use_sentence_transformers_vectorizer" \
+        --build-arg "USE_QUERY_PASSAGE_PREFIXES=$use_query_passage_prefixes" \
+        --build-arg "USE_QUERY_PROMPT=$use_query_prompt" \
+        --push \
+        --tag "$tag_git" \
+        --tag "$tag_latest" \
+        --tag "$tag" \
+        .
+    else
+      docker buildx build --platform=linux/arm64,linux/amd64 \
+        --build-arg "MODEL_NAME=$original_model_name" \
+        --build-arg "ONNX_RUNTIME=$onnx_runtime" \
+        --build-arg "TRUST_REMOTE_CODE=$trust_remote_code" \
+        --build-arg "USE_SENTENCE_TRANSFORMERS_VECTORIZER=$use_sentence_transformers_vectorizer" \
+        --build-arg "USE_QUERY_PASSAGE_PREFIXES=$use_query_passage_prefixes" \
+        --build-arg "USE_QUERY_PROMPT=$use_query_prompt" \
+        --push \
+        --tag "$tag_git" \
+        --tag "$tag_latest" \
+        --tag "$tag" \
+        .
+    fi
   fi
 }
 
