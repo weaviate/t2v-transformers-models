@@ -175,6 +175,9 @@ jobs:
             use_sentence_transformers_vectorizer: true
             use_query_prompt: true
             use_hf_auth_token: true
+          - model_name: jhu-clsp/mmBERT-small
+            model_tag_name: jhu-clsp-mmBERT-small
+            use_sentence_transformers_vectorizer: true
     env:
       LOCAL_REPO: transformers-inference
       REMOTE_REPO: semitechnologies/transformers-inference
