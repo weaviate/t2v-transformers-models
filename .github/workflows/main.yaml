@@ -14,7 +14,7 @@ on:
 jobs:
   build-image:
     name: Build image
-    runs-on: ubuntu-latest-8-cores
+    runs-on: ubicloud-standard-8
     strategy:
       matrix:
         include:
@@ -230,7 +230,7 @@ jobs:
           fi
   build-custom-image:
     name: Build custom image
-    runs-on: ubuntu-latest-8-cores
+    runs-on: ubicloud-standard-8
     env:
       LOCAL_REPO: transformers-inference
       REMOTE_REPO: semitechnologies/transformers-inference
