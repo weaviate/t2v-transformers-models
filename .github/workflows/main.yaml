@@ -14,7 +14,7 @@ on:
 jobs:
   build-image:
     name: Build image
-    runs-on: ubicloud-standard-8
+    runs-on: ubicloud-standard-16
     strategy:
       matrix:
         include:
