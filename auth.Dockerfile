@@ -20,7 +20,7 @@ ARG TRUST_REMOTE_CODE
 ARG USE_SENTENCE_TRANSFORMERS_VECTORIZER
 RUN mkdir nltk_data
 COPY download.py .
-RUN pip3 install -U "huggingface_hub[cli]"
+RUN pip3 install -U "huggingface_hub[cli]==0.36.0"
 RUN --mount=type=secret,id=hf_token,dst=/tmp/token \
     export HF_TOKEN=$(cat /tmp/token) && \
     hf auth login --token $HF_TOKEN
