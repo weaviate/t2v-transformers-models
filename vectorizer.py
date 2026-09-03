@@ -1,5 +1,6 @@
 import asyncio
 import math
+import threading
 from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 from typing import Optional, Any, Literal, List
@@ -282,6 +283,7 @@ class SentenceTransformerVectorizer:
 class ONNXVectorizer:
     model: ORTModelForFeatureExtraction
     tokenizer: AutoTokenizer
+    tokenizer_lock: threading.Lock
 
     def __init__(self, model_path, trust_remote_code: bool) -> None:
         onnx_path = Path(model_path)
@@ -293,6 +295,7 @@ class ONNXVectorizer:
         self.tokenizer = AutoTokenizer.from_pretrained(
             onnx_path, trust_remote_code=trust_remote_code
         )
+        self.tokenizer_lock = threading.Lock()
 
     def mean_pooling(self, model_output, attention_mask):
         token_embeddings = model_output[
@@ -306,9 +309,11 @@ class ONNXVectorizer:
         )
 
     def vectorize(self, text: str, config: VectorInputConfig):
-        encoded_input = self.tokenizer(
-            [text], padding=True, truncation=True, return_tensors="pt"
-        )
+        # Serialized: reconfiguring the Rust backend cannot overlap an encode (#123).
+        with self.tokenizer_lock:
+            encoded_input = self.tokenizer(
+                [text], padding=True, truncation=True, return_tensors="pt"
+            )
         # Compute token embeddings
         with torch.no_grad():
             model_output = self.model(**encoded_input)
@@ -368,14 +373,16 @@ class HuggingFaceVectorizer:
         nltk.data.path.append("./nltk_data")
 
     def tokenize(self, text: str):
-        return self.tokenizer(
-            text,
-            padding=True,
-            truncation=True,
-            max_length=500,
-            add_special_tokens=True,
-            return_tensors="pt",
-        )
+        # Serialized: reconfiguring the Rust backend cannot overlap an encode (#123).
+        with self.model_delegate.tokenizer_lock:
+            return self.tokenizer(
+                text,
+                padding=True,
+                truncation=True,
+                max_length=500,
+                add_special_tokens=True,
+                return_tensors="pt",
+            )
 
     def get_embeddings(self, batch_results):
         return self.model_delegate.get_embeddings(batch_results)
@@ -428,6 +435,7 @@ class HFModel:
         super().__init__()
         self.model = None
         self.tokenizer = None
+        self.tokenizer_lock = threading.Lock()
         self.cuda = cuda_support
         self.cuda_core = cuda_core
         self.trust_remote_code = trust_remote_code
@@ -556,9 +564,11 @@ class T5Model(HFModel):
     def get_batch_results(self, tokens, text):
         input_ids, attention_mask = tokens["input_ids"], tokens["attention_mask"]
 
-        target_encoding = self.tokenizer(
-            text, padding="longest", max_length=500, truncation=True
-        )
+        # Same tokenizer object as HuggingFaceVectorizer.tokenize, same lock (#123).
+        with self.tokenizer_lock:
+            target_encoding = self.tokenizer(
+                text, padding="longest", max_length=500, truncation=True
+            )
         labels = target_encoding.input_ids
         if self.cuda:
             labels = torch.tensor(labels).to(self.cuda_core)
