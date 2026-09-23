@@ -131,6 +131,48 @@ def collect_failures(make_vectorizer, call):
     return failures
 
 
+class MutationSpy:
+    """Records calls that reconfigure the Rust backend; those need a mutable borrow."""
+
+    MUTATORS = {"enable_truncation", "no_truncation", "enable_padding", "no_padding"}
+
+    def __init__(self, backend):
+        object.__setattr__(self, "backend", backend)
+        object.__setattr__(self, "mutations", [])
+
+    def __getattr__(self, name):
+        if name in self.MUTATORS:
+            self.mutations.append(name)
+        return getattr(self.backend, name)
+
+    def __setattr__(self, name, value):
+        self.mutations.append(name)
+        setattr(self.backend, name, value)
+
+
+def spy_on(tokenizer):
+    spy = MutationSpy(tokenizer._tokenizer)
+    tokenizer._tokenizer = spy
+    return spy
+
+
+def test_onnx_vectorize_does_not_reconfigure_tokenizer(make_onnx_vectorizer):
+    target = make_onnx_vectorizer()
+    spy = spy_on(target.tokenizer)
+    target.vectorize(LONG_TEXT, VectorInputConfig())
+    assert spy.mutations == []
+
+
+def test_huggingface_vectorize_does_not_reconfigure_tokenizer(
+    make_huggingface_vectorizer,
+):
+    target = make_huggingface_vectorizer()
+    spy = spy_on(target.tokenizer)
+    target.vectorize(LONG_TEXT, VectorInputConfig())
+    target.tokenize(["First sentence.", "Second sentence."])
+    assert spy.mutations == []
+
+
 def test_onnx_vectorize_survives_concurrent_cold_start(make_onnx_vectorizer):
     failures = collect_failures(
         make_onnx_vectorizer,
