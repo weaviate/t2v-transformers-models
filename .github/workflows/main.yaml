@@ -12,6 +12,20 @@ on:
   pull_request:
 
 jobs:
+  unit-tests:
+    name: Unit tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-python@v4
+        with:
+          python-version: "3.11"
+          cache: 'pip' # caching pip dependencies
+      - name: Install dependencies
+        # The CPU index keeps pip from pulling the CUDA build of torch.
+        run: pip install -r requirements.txt pytest --extra-index-url https://download.pytorch.org/whl/cpu
+      - name: Run unit tests
+        run: pytest vectorizer_concurrency_test.py
   build-image:
     name: Build image
     runs-on: ubicloud-standard-16
