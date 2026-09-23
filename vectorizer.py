@@ -293,6 +293,8 @@ class ONNXVectorizer:
         self.tokenizer = AutoTokenizer.from_pretrained(
             onnx_path, trust_remote_code=trust_remote_code
         )
+        # Set the tokenizer config before requests run concurrently (#123).
+        self.tokenize("")
 
     def mean_pooling(self, model_output, attention_mask):
         token_embeddings = model_output[
@@ -305,10 +307,13 @@ class ONNXVectorizer:
             input_mask_expanded.sum(1), min=1e-9
         )
 
-    def vectorize(self, text: str, config: VectorInputConfig):
-        encoded_input = self.tokenizer(
+    def tokenize(self, text: str):
+        return self.tokenizer(
             [text], padding=True, truncation=True, return_tensors="pt"
         )
+
+    def vectorize(self, text: str, config: VectorInputConfig):
+        encoded_input = self.tokenize(text)
         # Compute token embeddings
         with torch.no_grad():
             model_output = self.model(**encoded_input)
@@ -364,6 +369,8 @@ class HuggingFaceVectorizer:
         self.model.eval()  # make sure we're in inference mode, not training
 
         self.tokenizer = self.model_delegate.create_tokenizer(model_path)
+        # Set the tokenizer config before requests run concurrently (#123).
+        self.tokenize("")
 
         nltk.data.path.append("./nltk_data")
 
