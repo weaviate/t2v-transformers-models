@@ -147,9 +147,8 @@ class SmokeTest(unittest.TestCase):
         threads = []
         for _ in range(10):
             t = threading.Thread(
-                target=self._test_vectorizing_sentences(
-                    task_type=random.choice(["query", "passage"])
-                )
+                target=self._test_vectorizing_sentences,
+                kwargs={"task_type": random.choice(["query", "passage"])},
             )
             threads.append(t)
             t.start()
